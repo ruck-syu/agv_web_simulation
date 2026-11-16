@@ -1,0 +1,69 @@
+test_config_merge_preserves_defaults_and_nested_costmaps (test_control.ControlTests) ... ok
+test_goal_validation (test_control.ControlTests) ... ok
+test_idle_and_expired_commands_stop (test_control.ControlTests) ... ok
+test_manual_preempts_navigation (test_control.ControlTests) ... ok
+test_navigation_requires_fresh_sensors_heartbeat_and_velocity (test_control.ControlTests) ... ok
+test_nonfinite_input_and_speed_limits (test_control.ControlTests) ... ok
+test_stop_does_not_replay_old_commands (test_control.ControlTests) ... ok
+test_batch_matches_scalar_intersections (test_lidar.LidarTests) ... ok
+test_box_inside (test_lidar.LidarTests) ... ok
+test_box_parallel_and_miss (test_lidar.LidarTests) ... ok
+test_circle_tangent_miss_and_inside (test_lidar.LidarTests) ... ok
+test_invalid_configuration (test_lidar.LidarTests) ... ok
+test_occlusion_and_height (test_lidar.LidarTests) ... ok
+test_range_limits (test_lidar.LidarTests) ... ok
+test_robot_rotation_and_translation (test_lidar.LidarTests) ... ok
+test_rotated_box (test_lidar.LidarTests) ... ok
+test_scan_tf_and_motion (test_lidar_runtime.LidarRuntimeTests) ... [INFO] [1794754812.123601673] [agv_web_simulation]: AGV simulation ready: 393 collision objects, dt=0.020s, pose=(-2.800, 1.600, 0.000), wheel radius=0.190m, wheel separation=0.940m, footprint=1.55x1.06m, height=0.96m.
+[INFO] [1794754812.123806715] [agv_web_simulation]: Subscribing /cmd_vel; publishing /odom, /joint_states, /agv_web/collision_status, /agv_web/collision_geometry, /scan, /agv_web/ground_truth, /agv_web/odometry_status and TF odom->base_link.
+[WARN] [1794754815.656100425] [agv_web_simulation]: No /cmd_vel received for 0.50s; stopping the AGV.
+ok
+test_autonomy_requires_fresh_map_and_localization (test_navigation_runtime.NavigationLifecycleTests) ... ok
+test_failed_pending_request_does_not_leave_busy_latched (test_navigation_runtime.NavigationLifecycleTests) ... ok
+test_late_acceptance_is_canceled_and_keeps_new_goals_blocked (test_navigation_runtime.NavigationLifecycleTests) ... ok
+test_node_initializes_and_requires_active_lifecycle (test_navigation_runtime.NavigationLifecycleTests) ... ok
+test_stale_result_cannot_reenable_autonomous_commands (test_navigation_runtime.NavigationLifecycleTests) ... ok
+test_asymmetric_calibration_bias_produces_known_arc (test_odometry.OdometryTests) ... ok
+test_covariance_grows_and_is_positive_semidefinite (test_odometry.OdometryTests) ... ok
+test_covariance_jacobian_matches_finite_differences (test_odometry.OdometryTests) ... ok
+test_equal_calibration_bias_produces_known_drift (test_odometry.OdometryTests) ... ok
+test_exact_quarter_circle (test_odometry.OdometryTests) ... ok
+test_forward_and_reverse_from_encoder_deltas (test_odometry.OdometryTests) ... ok
+test_full_circle_has_no_closure_error (test_odometry.OdometryTests) ... ok
+test_heading_error_wraps (test_odometry.OdometryTests) ... ok
+test_initial_heading (test_odometry.OdometryTests) ... ok
+test_invalid_parameters_and_inputs (test_odometry.OdometryTests) ... ok
+test_pure_rotation_and_wrap (test_odometry.OdometryTests) ... ok
+test_ros_covariance_indices (test_odometry.OdometryTests) ... ok
+test_stopped_or_blocked_encoders_do_not_drift (test_odometry.OdometryTests) ... ok
+test_tiny_angular_displacement_is_stable (test_odometry.OdometryTests) ... ok
+test_blocked_robot_does_not_accumulate_odometry (test_odometry_runtime.OdometryRuntimeTests) ... [INFO] [1794754816.544494175] [agv_web_simulation]: AGV simulation ready: 393 collision objects, dt=0.020s, pose=(30.500, 4.000, 0.000), wheel radius=0.190m, wheel separation=0.940m, footprint=1.55x1.06m, height=0.96m.
+[INFO] [1794754816.544695050] [agv_web_simulation]: Subscribing /cmd_vel; publishing /odom, /joint_states, /agv_web/collision_status, /agv_web/collision_geometry, /scan, /agv_web/ground_truth, /agv_web/odometry_status and TF odom->base_link.
+[WARN] [1794754817.205900259] [agv_web_simulation]: Collision prevented: wall_east (wall) blocks the AGV footprint.
+[WARN] [1794754817.559501009] [agv_web_simulation]: No /cmd_vel received for 0.50s; stopping the AGV.
+ok
+test_calibration_drift_is_published (test_odometry_runtime.OdometryRuntimeTests) ... [INFO] [1794754818.303233092] [agv_web_simulation]: AGV simulation ready: 393 collision objects, dt=0.020s, pose=(-2.800, 1.600, 0.000), wheel radius=0.190m, wheel separation=0.940m, footprint=1.55x1.06m, height=0.96m.
+[INFO] [1794754818.303468342] [agv_web_simulation]: Subscribing /cmd_vel; publishing /odom, /joint_states, /agv_web/collision_status, /agv_web/collision_geometry, /scan, /agv_web/ground_truth, /agv_web/odometry_status and TF odom->base_link.
+[WARN] [1794754819.356994510] [agv_web_simulation]: No /cmd_vel received for 0.50s; stopping the AGV.
+ok
+test_ideal_encoder_matches_ground_truth_and_tf (test_odometry_runtime.OdometryRuntimeTests) ... [INFO] [1794754820.108397260] [agv_web_simulation]: AGV simulation ready: 393 collision objects, dt=0.020s, pose=(-2.800, 1.600, 0.000), wheel radius=0.190m, wheel separation=0.940m, footprint=1.55x1.06m, height=0.96m.
+[INFO] [1794754820.108645468] [agv_web_simulation]: Subscribing /cmd_vel; publishing /odom, /joint_states, /agv_web/collision_status, /agv_web/collision_geometry, /scan, /agv_web/ground_truth, /agv_web/odometry_status and TF odom->base_link.
+[WARN] [1794754821.178914552] [agv_web_simulation]: No /cmd_vel received for 0.50s; stopping the AGV.
+ok
+test_full_speed_wall_collision_is_blocked (test_speed_runtime.SpeedRuntimeTests) ... [INFO] [1794754821.929104636] [agv_web_simulation]: AGV simulation ready: 393 collision objects, dt=0.020s, pose=(30.500, 4.000, 0.000), wheel radius=0.190m, wheel separation=0.940m, footprint=1.55x1.06m, height=0.96m.
+[INFO] [1794754821.929332011] [agv_web_simulation]: Subscribing /cmd_vel; publishing /odom, /joint_states, /agv_web/collision_status, /agv_web/collision_geometry, /scan, /agv_web/ground_truth, /agv_web/odometry_status and TF odom->base_link.
+[WARN] [1794754821.954087219] [agv_web_simulation]: Collision prevented: wall_east (wall) blocks the AGV footprint.
+ok
+test_manual_speed_reaches_1_2_mps (test_speed_runtime.SpeedRuntimeTests) ... [INFO] [1794754821.975601761] [agv_web_simulation]: AGV simulation ready: 393 collision objects, dt=0.020s, pose=(10.000, 0.000, 0.000), wheel radius=0.190m, wheel separation=0.940m, footprint=1.55x1.06m, height=0.96m.
+[INFO] [1794754821.975857803] [agv_web_simulation]: Subscribing /cmd_vel; publishing /odom, /joint_states, /agv_web/collision_status, /agv_web/collision_geometry, /scan, /agv_web/ground_truth, /agv_web/odometry_status and TF odom->base_link.
+[WARN] [1794754822.029303511] [agv_web_simulation]: No /cmd_vel received for 0.50s; stopping the AGV.
+ok
+test_turning_does_not_clip_requested_linear_speed (test_speed_runtime.SpeedRuntimeTests) ... [INFO] [1794754822.071942053] [agv_web_simulation]: AGV simulation ready: 393 collision objects, dt=0.020s, pose=(10.000, 0.000, 0.000), wheel radius=0.190m, wheel separation=0.940m, footprint=1.55x1.06m, height=0.96m.
+[INFO] [1794754822.072133011] [agv_web_simulation]: Subscribing /cmd_vel; publishing /odom, /joint_states, /agv_web/collision_status, /agv_web/collision_geometry, /scan, /agv_web/ground_truth, /agv_web/odometry_status and TF odom->base_link.
+[WARN] [1794754822.125011553] [agv_web_simulation]: No /cmd_vel received for 0.50s; stopping the AGV.
+ok
+
+----------------------------------------------------------------------
+Ran 42 tests in 10.258s
+
+OK

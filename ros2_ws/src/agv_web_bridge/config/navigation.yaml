@@ -1,0 +1,111 @@
+controller_server:
+  ros__parameters:
+    controller_frequency: 20.0
+    progress_checker:
+      required_movement_radius: 0.2
+      movement_time_allowance: 15.0
+    general_goal_checker:
+      xy_goal_tolerance: 0.2
+      yaw_goal_tolerance: 0.2
+    FollowPath:
+      max_vel_x: 0.7
+      max_speed_xy: 0.7
+      max_vel_theta: 0.8
+      acc_lim_x: 1.0
+      acc_lim_theta: 2.0
+      decel_lim_x: -1.0
+      decel_lim_theta: -2.0
+      sim_time: 2.0
+      trans_stopped_velocity: 0.05
+      xy_goal_tolerance: 0.1
+      critics: [RotateToGoal, Oscillation, ObstacleFootprint, GoalAlign, PathAlign, PathDist, GoalDist]
+      ObstacleFootprint.scale: 0.1
+planner_server:
+  ros__parameters:
+    expected_planner_frequency: 2.0
+    GridBased:
+      plugin: nav2_smac_planner/SmacPlannerHybrid
+      tolerance: 0.1
+      downsample_costmap: false
+      allow_unknown: false
+      max_iterations: 100000
+      max_on_approach_iterations: 1000
+      max_planning_time: 3.0
+      motion_model_for_search: REEDS_SHEPP
+      angle_quantization_bins: 72
+      minimum_turning_radius: 0.6
+      reverse_penalty: 2.0
+      change_penalty: 0.0
+      non_straight_penalty: 1.2
+      cost_penalty: 2.0
+      analytic_expansion_ratio: 3.5
+      smooth_path: true
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      width: 8
+      height: 8
+      resolution: 0.1
+      footprint: '[[0.775, 0.53], [0.775, -0.53], [-0.775, -0.53], [-0.775, 0.53]]'
+      footprint_padding: 0.03
+      plugins: [obstacle_layer, inflation_layer]
+      obstacle_layer:
+        plugin: nav2_costmap_2d::ObstacleLayer
+        enabled: true
+        observation_sources: roof floor
+        roof:
+          topic: /scan
+          data_type: LaserScan
+          marking: true
+          clearing: true
+          inf_is_valid: true
+          max_obstacle_height: 2.0
+          obstacle_max_range: 12.0
+          raytrace_max_range: 15.0
+        floor:
+          topic: /scan_obstacles
+          data_type: LaserScan
+          marking: true
+          clearing: true
+          inf_is_valid: true
+          max_obstacle_height: 2.0
+          obstacle_max_range: 12.0
+          raytrace_max_range: 15.0
+      inflation_layer:
+        inflation_radius: 1.0
+        cost_scaling_factor: 3.0
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      resolution: 0.1
+      footprint: '[[0.775, 0.53], [0.775, -0.53], [-0.775, -0.53], [-0.775, 0.53]]'
+      footprint_padding: 0.03
+      track_unknown_space: true
+      obstacle_layer:
+        observation_sources: roof floor
+        roof:
+          topic: /scan
+          data_type: LaserScan
+          marking: true
+          clearing: true
+          inf_is_valid: true
+          max_obstacle_height: 2.0
+          obstacle_max_range: 30.0
+          raytrace_max_range: 30.0
+        floor:
+          topic: /scan_obstacles
+          data_type: LaserScan
+          marking: true
+          clearing: true
+          inf_is_valid: true
+          max_obstacle_height: 2.0
+          obstacle_max_range: 30.0
+          raytrace_max_range: 30.0
+      inflation_layer:
+        inflation_radius: 1.0
+        cost_scaling_factor: 3.0
+behavior_server:
+  ros__parameters:
+    max_rotational_vel: 0.8
+    min_rotational_vel: 0.2
+    rotational_acc_lim: 2.0

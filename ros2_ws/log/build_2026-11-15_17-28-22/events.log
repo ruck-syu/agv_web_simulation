@@ -1,0 +1,50 @@
+[0.000000] (-) TimerEvent: {}
+[0.001934] (agv_web_bridge) JobQueued: {'identifier': 'agv_web_bridge', 'dependencies': OrderedDict()}
+[0.002958] (agv_web_bridge) JobStarted: {'identifier': 'agv_web_bridge'}
+[0.099482] (-) TimerEvent: {}
+[0.199762] (-) TimerEvent: {}
+[0.300093] (-) TimerEvent: {}
+[0.400431] (-) TimerEvent: {}
+[0.500930] (-) TimerEvent: {}
+[0.601362] (-) TimerEvent: {}
+[0.701659] (-) TimerEvent: {}
+[0.801969] (-) TimerEvent: {}
+[0.902260] (-) TimerEvent: {}
+[1.002534] (-) TimerEvent: {}
+[1.102778] (-) TimerEvent: {}
+[1.203049] (-) TimerEvent: {}
+[1.303267] (-) TimerEvent: {}
+[1.403512] (-) TimerEvent: {}
+[1.414377] (agv_web_bridge) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'egg_info', '--egg-base', '../../build/agv_web_bridge', 'build', '--build-base', '/home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/build', 'install', '--record', '/home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/install.log', '--single-version-externally-managed', 'install_data'], 'cwd': '/home/tharunm/agv_web_simulation/ros2_ws/src/agv_web_bridge', 'env': {'USER': 'tharunm', 'SHLVL': '0', 'LD_LIBRARY_PATH': '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib', 'HOME': '/home/tharunm', 'OLDPWD': '/home/tharunm', 'ROS_PYTHON_VERSION': '3', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'WSL_DISTRO_NAME': 'Ubuntu-22.04', 'WAYLAND_DISPLAY': 'wayland-0', 'ROS_DISTRO': 'humble', 'LOGNAME': 'tharunm', 'NAME': 'WIN-L3420U0GE4C', 'WSL_INTEROP': '/run/WSL/3922_interop', 'PULSE_SERVER': 'unix:/mnt/wslg/PulseServer', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'TERM': 'xterm-256color', 'ROS_LOCALHOST_ONLY': '0', 'PATH': '/opt/ros/humble/bin:/home/tharunm/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Users/tharu/AppData/Local/Microsoft/WindowsApps/Microsoft.PowerShell_8wekyb3d8bbwe:/mnt/c/Program Files/WindowsApps/MicrosoftCorporationII.WindowsSubsystemForLinux_2.6.3.0_x64__8wekyb3d8bbwe:/mnt/c/Program Files/Eclipse Adoptium/jdk-25.0.2.10-hotspot/bin:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0/:/mnt/c/WINDOWS/System32/OpenSSH/:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA App/NvDLISR:/mnt/c/Program Files/dotnet/:/mnt/c/Program Files/nodejs/:/mnt/c/Program Files/MySQL/MySQL Server 8.0/bin:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/Docker/Docker/resources/bin:/mnt/c/Users/tharu/.local/bin:/mnt/c/Users/tharu/AppData/Local/agy/bin:/mnt/c/Users/tharu/AppData/Local/Programs/Python/Python312/Scripts/:/mnt/c/Users/tharu/AppData/Local/Programs/Python/Python312/:/mnt/c/Users/tharu/AppData/Local/Programs/Python/Launcher/:/mnt/c/Program Files/MySQL/MySQL Shell 8.0/bin/:/mnt/c/Users/tharu/AppData/Local/Microsoft/WindowsApps:/mnt/c/Program Files/JetBrains/IntelliJ IDEA 2026.1/bin:/mnt/c/Users/tharu/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Users/tharu/AppData/Local/Python/bin:/mnt/c/Users/tharu/AppData/Roaming/npm:/mnt/c/Users/tharu/.local/bin:/mnt/c/Users/tharu/flutter/bin:/mnt/c/Users/tharu/AppData/Local/Programs/Ollama:/mnt/c/Users/tharu/AppData/Local/Microsoft/WinGet/Links:/mnt/c/Users/tharu/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim:/mnt/c/Users/tharu/AppData/Roaming/Code/User/globalStorage/github.copilot-chat/debugCommand:/mnt/c/Users/tharu/AppData/Local/Programs/Microsoft VS Code/bin/copilot-shim:/snap/bin', 'XDG_RUNTIME_DIR': '/run/user/1000/', 'DISPLAY': ':0', 'LANG': 'C.UTF-8', 'AMENT_PREFIX_PATH': '/opt/ros/humble', 'SHELL': '/bin/bash', 'PWD': '/home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge', 'XDG_DATA_DIRS': '/usr/local/share:/usr/share:/var/lib/snapd/desktop', 'PYTHONPATH': '/home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'COLCON': '1', 'WSL2_GUI_APPS_ENABLED': '1', 'HOSTTYPE': 'x86_64', 'WSLENV': 'ELECTRON_RUN_AS_NODE/w:'}, 'shell': False}
+[1.503603] (-) TimerEvent: {}
+[1.603897] (-) TimerEvent: {}
+[1.704139] (-) TimerEvent: {}
+[1.804429] (-) TimerEvent: {}
+[1.818000] (agv_web_bridge) StdoutLine: {'line': b'running egg_info\n'}
+[1.819070] (agv_web_bridge) StdoutLine: {'line': b'writing ../../build/agv_web_bridge/agv_web_bridge.egg-info/PKG-INFO\n'}
+[1.819572] (agv_web_bridge) StdoutLine: {'line': b'writing dependency_links to ../../build/agv_web_bridge/agv_web_bridge.egg-info/dependency_links.txt\n'}
+[1.820159] (agv_web_bridge) StdoutLine: {'line': b'writing entry points to ../../build/agv_web_bridge/agv_web_bridge.egg-info/entry_points.txt\n'}
+[1.820564] (agv_web_bridge) StdoutLine: {'line': b'writing requirements to ../../build/agv_web_bridge/agv_web_bridge.egg-info/requires.txt\n'}
+[1.821054] (agv_web_bridge) StdoutLine: {'line': b'writing top-level names to ../../build/agv_web_bridge/agv_web_bridge.egg-info/top_level.txt\n'}
+[1.824460] (agv_web_bridge) StdoutLine: {'line': b"reading manifest file '../../build/agv_web_bridge/agv_web_bridge.egg-info/SOURCES.txt'\n"}
+[1.826672] (agv_web_bridge) StdoutLine: {'line': b"writing manifest file '../../build/agv_web_bridge/agv_web_bridge.egg-info/SOURCES.txt'\n"}
+[1.827527] (agv_web_bridge) StdoutLine: {'line': b'running build\n'}
+[1.828402] (agv_web_bridge) StdoutLine: {'line': b'running build_py\n'}
+[1.828597] (agv_web_bridge) StdoutLine: {'line': b'copying agv_web_bridge/simulation_node.py -> /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/build/lib/agv_web_bridge\n'}
+[1.828753] (agv_web_bridge) StdoutLine: {'line': b'running install\n'}
+[1.828904] (agv_web_bridge) StdoutLine: {'line': b'running install_lib\n'}
+[1.829652] (agv_web_bridge) StdoutLine: {'line': b'copying /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/build/lib/agv_web_bridge/simulation_node.py -> /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv_web_bridge\n'}
+[1.831504] (agv_web_bridge) StdoutLine: {'line': b'byte-compiling /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv_web_bridge/simulation_node.py to simulation_node.cpython-310.pyc\n'}
+[1.842560] (agv_web_bridge) StdoutLine: {'line': b'running install_data\n'}
+[1.843320] (agv_web_bridge) StdoutLine: {'line': b'copying config/warehouse_collision.json -> /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/share/agv_web_bridge/config\n'}
+[1.843529] (agv_web_bridge) StdoutLine: {'line': b'running install_egg_info\n'}
+[1.845553] (agv_web_bridge) StdoutLine: {'line': b"removing '/home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv_web_bridge-0.1.0-py3.10.egg-info' (and everything under it)\n"}
+[1.846783] (agv_web_bridge) StdoutLine: {'line': b'Copying ../../build/agv_web_bridge/agv_web_bridge.egg-info to /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv_web_bridge-0.1.0-py3.10.egg-info\n'}
+[1.851744] (agv_web_bridge) StdoutLine: {'line': b'running install_scripts\n'}
+[1.887875] (agv_web_bridge) StdoutLine: {'line': b'Installing comm_test_node script to /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/agv_web_bridge\n'}
+[1.888146] (agv_web_bridge) StdoutLine: {'line': b'Installing simulation_node script to /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/agv_web_bridge\n'}
+[1.888618] (agv_web_bridge) StdoutLine: {'line': b"writing list of installed files to '/home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/install.log'\n"}
+[1.904592] (-) TimerEvent: {}
+[1.929908] (agv_web_bridge) CommandEnded: {'returncode': 0}
+[1.974501] (agv_web_bridge) JobEnded: {'identifier': 'agv_web_bridge', 'rc': 0}
+[1.976907] (-) EventReactorShutdown: {}

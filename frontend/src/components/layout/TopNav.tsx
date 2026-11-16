@@ -1,0 +1,27 @@
+import { useSimulation } from '../../simulation/SimulationProvider';
+import { ConnectionBadge } from '../dashboard/ConnectionBadge';
+import { Icon } from '../ui/Icon';
+
+interface TopNavProps { isFullscreen: boolean; onToggleFullscreen: () => void }
+export function TopNav({ isFullscreen, onToggleFullscreen }: TopNavProps) {
+  const { snapshot } = useSimulation();
+  const live = snapshot.connectionStatus === 'connected' && !snapshot.stale;
+  return <header className="top-nav">
+    <div className="brand">
+      <span className="brand__mark" aria-hidden="true"><Icon name="robot" size={26} /></span>
+      <h1>Warehouse control</h1>
+      <span className="brand__site">Warehouse 01</span>
+    </div>
+    <div className="top-nav__meta">
+      <span className={`robot-link ${live ? 'is-live' : ''}`}>
+        <span aria-hidden="true" />{live ? 'Robot online' : 'Waiting for robot'}
+      </span>
+      <ConnectionBadge compact />
+      <button type="button" className="icon-text-button" onClick={onToggleFullscreen}
+        title={isFullscreen ? 'Exit full screen' : 'Enter full screen'}>
+        <Icon name={isFullscreen ? 'minimize' : 'maximize'} size={17} />
+        <span>{isFullscreen ? 'Exit full screen' : 'Full screen'}</span>
+      </button>
+    </div>
+  </header>;
+}

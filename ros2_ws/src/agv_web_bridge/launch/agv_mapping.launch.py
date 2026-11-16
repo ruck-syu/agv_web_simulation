@@ -1,0 +1,16 @@
+"""Simulation, rosbridge and real SLAM Toolbox online mapping (wall clock)."""
+from pathlib import Path
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+
+
+def generate_launch_description():
+    share = Path(get_package_share_directory('agv_web_bridge'))
+    slam = Path(get_package_share_directory('slam_toolbox'))
+    return LaunchDescription([
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(str(share / 'launch/agv_simulation.launch.py'))),
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(str(slam / 'launch/online_async_launch.py')),
+            launch_arguments={'use_sim_time': 'false', 'slam_params_file': str(share / 'config/slam.yaml')}.items()),
+    ])

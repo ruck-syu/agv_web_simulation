@@ -1,0 +1,40 @@
+running develop
+Removing /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv-web-bridge.egg-link (link to .)
+running egg_info
+writing ../../build/agv_web_bridge/agv_web_bridge.egg-info/PKG-INFO
+writing dependency_links to ../../build/agv_web_bridge/agv_web_bridge.egg-info/dependency_links.txt
+writing entry points to ../../build/agv_web_bridge/agv_web_bridge.egg-info/entry_points.txt
+writing requirements to ../../build/agv_web_bridge/agv_web_bridge.egg-info/requires.txt
+writing top-level names to ../../build/agv_web_bridge/agv_web_bridge.egg-info/top_level.txt
+reading manifest file '../../build/agv_web_bridge/agv_web_bridge.egg-info/SOURCES.txt'
+writing manifest file '../../build/agv_web_bridge/agv_web_bridge.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/build
+creating /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/build/lib
+creating /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/build/lib/agv_web_bridge
+copying agv_web_bridge/comm_test_node.py -> /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/build/lib/agv_web_bridge
+copying agv_web_bridge/simulation_node.py -> /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/build/lib/agv_web_bridge
+copying agv_web_bridge/__init__.py -> /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/build/lib/agv_web_bridge
+running install
+running install_lib
+creating /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv_web_bridge
+copying /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/build/lib/agv_web_bridge/comm_test_node.py -> /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv_web_bridge
+copying /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/build/lib/agv_web_bridge/simulation_node.py -> /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv_web_bridge
+copying /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/build/lib/agv_web_bridge/__init__.py -> /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv_web_bridge
+byte-compiling /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv_web_bridge/comm_test_node.py to comm_test_node.cpython-310.pyc
+byte-compiling /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv_web_bridge/simulation_node.py to simulation_node.cpython-310.pyc
+byte-compiling /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv_web_bridge/__init__.py to __init__.cpython-310.pyc
+running install_data
+copying resource/agv_web_bridge -> /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/share/ament_index/resource_index/packages
+copying package.xml -> /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/share/agv_web_bridge
+copying launch/agv_simulation.launch.py -> /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/share/agv_web_bridge/launch
+copying launch/agv_web_bridge.launch.py -> /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/share/agv_web_bridge/launch
+creating /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/share/agv_web_bridge/config
+copying config/warehouse_collision.json -> /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/share/agv_web_bridge/config
+running install_egg_info
+Copying ../../build/agv_web_bridge/agv_web_bridge.egg-info to /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv_web_bridge-0.1.0-py3.10.egg-info
+running install_scripts
+Installing comm_test_node script to /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/agv_web_bridge
+Installing simulation_node script to /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/agv_web_bridge
+writing list of installed files to '/home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/install.log'

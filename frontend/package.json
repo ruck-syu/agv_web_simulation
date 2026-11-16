@@ -1,0 +1,33 @@
+{
+  "name": "agv-warehouse-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "ROS 2 AGV warehouse simulation with LiDAR, odometry, SLAM and Nav2",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.mjs",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@fontsource/barlow": "^5.3.0",
+    "@fontsource/barlow-condensed": "^5.3.0",
+    "@react-three/drei": "9.122.0",
+    "@react-three/fiber": "8.18.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "three": "0.170.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "@types/react": "18.3.18",
+    "@types/react-dom": "18.3.5",
+    "@types/three": "0.170.0",
+    "@vitejs/plugin-react": "4.3.4",
+    "typescript": "5.6.3",
+    "vite": "5.4.14"
+  }
+}

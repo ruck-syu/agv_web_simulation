@@ -1,0 +1,3 @@
+[INFO] [1794753287.934724676] [agv_web_simulation]: AGV simulation ready: 393 collision objects, dt=0.020s, pose=(-2.800, 1.600, 0.000), wheel radius=0.190m, wheel separation=0.940m, footprint=1.55x1.06m, height=0.96m.
+[INFO] [1794753287.935162717] [agv_web_simulation]: Subscribing /cmd_vel; publishing /odom, /joint_states, /agv_web/collision_status, /agv_web/collision_geometry, /scan, /agv_web/ground_truth, /agv_web/odometry_status and TF odom->base_link.
+[WARN] [1794753289.844901593] [agv_web_simulation]: No /cmd_vel received for 0.50s; stopping the AGV.

@@ -1,0 +1,26 @@
+[1.414s] Invoking command in '/home/tharunm/agv_web_simulation/ros2_ws/src/agv_web_bridge': PYTHONPATH=/home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/agv_web_bridge build --build-base /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/build install --record /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/install.log --single-version-externally-managed install_data
+[1.815s] running egg_info
+[1.816s] writing ../../build/agv_web_bridge/agv_web_bridge.egg-info/PKG-INFO
+[1.817s] writing dependency_links to ../../build/agv_web_bridge/agv_web_bridge.egg-info/dependency_links.txt
+[1.817s] writing entry points to ../../build/agv_web_bridge/agv_web_bridge.egg-info/entry_points.txt
+[1.818s] writing requirements to ../../build/agv_web_bridge/agv_web_bridge.egg-info/requires.txt
+[1.818s] writing top-level names to ../../build/agv_web_bridge/agv_web_bridge.egg-info/top_level.txt
+[1.822s] reading manifest file '../../build/agv_web_bridge/agv_web_bridge.egg-info/SOURCES.txt'
+[1.824s] writing manifest file '../../build/agv_web_bridge/agv_web_bridge.egg-info/SOURCES.txt'
+[1.825s] running build
+[1.825s] running build_py
+[1.826s] copying agv_web_bridge/simulation_node.py -> /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/build/lib/agv_web_bridge
+[1.826s] running install
+[1.826s] running install_lib
+[1.827s] copying /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/build/lib/agv_web_bridge/simulation_node.py -> /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv_web_bridge
+[1.829s] byte-compiling /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv_web_bridge/simulation_node.py to simulation_node.cpython-310.pyc
+[1.840s] running install_data
+[1.840s] copying config/warehouse_collision.json -> /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/share/agv_web_bridge/config
+[1.841s] running install_egg_info
+[1.843s] removing '/home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv_web_bridge-0.1.0-py3.10.egg-info' (and everything under it)
+[1.844s] Copying ../../build/agv_web_bridge/agv_web_bridge.egg-info to /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages/agv_web_bridge-0.1.0-py3.10.egg-info
+[1.849s] running install_scripts
+[1.885s] Installing comm_test_node script to /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/agv_web_bridge
+[1.885s] Installing simulation_node script to /home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/agv_web_bridge
+[1.886s] writing list of installed files to '/home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/install.log'
+[1.927s] Invoked command in '/home/tharunm/agv_web_simulation/ros2_ws/src/agv_web_bridge' returned '0': PYTHONPATH=/home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/tharunm/agv_web_simulation/ros2_ws/install/agv_web_bridge/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/agv_web_bridge build --build-base /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/build install --record /home/tharunm/agv_web_simulation/ros2_ws/build/agv_web_bridge/install.log --single-version-externally-managed install_data

@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "rates_hz": {
+    "scan": 9.99628040738508,
+    "scan_obstacles": 9.99628040738508,
+    "odom": 24.990701018462705
+  },
+  "goal": {
+    "action": "goal",
+    "x": -1.5999999999999999,
+    "y": 1.6,
+    "yaw": 0.0
+  },
+  "successful_goal": {
+    "state": "succeeded",
+    "detail": "Goal reached",
+    "mode": "manual",
+    "busy": false,
+    "server_ready": true,
+    "localization_ready": true,
+    "sensors_ready": true,
+    "operator_ready": true,
+    "distance_remaining": 0.20000000298023224,
+    "goal": [
+      -1.5999999999999999,
+      1.6,
+      0.0
+    ]
+  },
+  "cancel": "pass",
+  "heartbeat_stop": "pass",
+  "elapsed_seconds": 12.256243881000046,
+  "topics_received": {
+    "scan": 122,
+    "scan_obstacles": 122,
+    "odom": 306,
+    "map": 7
+  }
+}

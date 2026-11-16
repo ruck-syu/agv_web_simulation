@@ -1,0 +1,4 @@
+[console_scripts]
+comm_test_node = agv_web_bridge.comm_test_node:main
+simulation_node = agv_web_bridge.simulation_node:main
+

@@ -1,0 +1,7 @@
+{
+  "obstacles": 393,
+  "rays_per_sensor": 360,
+  "sensors": 2,
+  "mean_ms": 6.544460090010489,
+  "p95_ms": 7.171834000018862
+}
