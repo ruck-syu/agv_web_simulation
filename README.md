@@ -33,6 +33,22 @@ The map is live SLAM output, not a map prefilled from the known scene. To save i
 rtk proxy docker compose exec simulation bash -c 'source /opt/ros/humble/setup.bash && ros2 run nav2_map_server map_saver_cli -f /workspace/warehouse_map'
 ```
 
+## Rack routes, scan display and theme
+
+Rack floor footprints are reserved storage space. The simulator blocks entry beneath shelving for both manual and autonomous movement, and both scan planes detect the full rack boundary. Routes must use the open aisles and go around rack ends.
+
+The **Rack-to-rack path planning** panel selects a source and destination from the eight rack faces. A cyan route appears immediately in the warehouse and its small overhead map, even before ROS connects. Green marks the source and orange marks the destination. The preview finds the shortest visibility-graph route around conservative obstacle boxes expanded by the AGV turning radius plus 15 cm. Its distance covers source to destination; the initial trip to the source is separate. Static warehouse geometry is used offline and received collision geometry is used when available.
+
+**Start rack route** asks Nav2 to visit the source approach point, then the destination approach point after confirmed source arrival. Goals are converted from warehouse to map coordinates using fresh wheel odometry, ground truth and map localization. Nav2's live plan appears in green and can differ from the cyan preview as SLAM discovers obstacles. Unknown map cells can prevent execution; the preview does not mark unknown space as safe. Stop, manual takeover, failure and stale telemetry interrupt the journey rather than advancing to the next rack.
+
+**LiDAR · 3D scan view** controls measured points and scan rays in the 3D scene. These are the existing planar scan at 1.02 m height, not a volumetric 3D sensor. Returns within 2 m turn red and show an **OBSTACLE** proximity warning; expected rack and wall surfaces also count. Live collision reports show the blocking object's type and ID. Stale scans are hidden and the UI reports sensing unavailable.
+
+The header's **Dark mode** switch changes the entire dashboard theme. Dark is the default; an explicit light or dark choice is saved on this browser and synchronized between tabs. Blocked browser storage does not prevent switching themes.
+
+Aisle-only rack routing: [policy and live validation](docs/RACK_AISLE_POLICY.md).
+
+Live validation and localization-freshness details: [rack navigation verification](docs/LIVE_RACK_NAVIGATION.md).
+
 ## Gamepad controller
 
 Connect a USB or Bluetooth controller, open localhost or HTTPS, and press any controller button so the browser can detect it. In **Drive AGV**, select **Enable gamepad driving**. Only browser `standard` mappings are accepted (common Xbox and PlayStation controllers).

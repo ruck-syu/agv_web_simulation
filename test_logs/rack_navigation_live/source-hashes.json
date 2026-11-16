@@ -1,0 +1,10 @@
+{
+  "frontend/src/mapping/types.ts": "b4549532f19bbbef27c73a7e7f6562e665ca0bfa9943bc5becba0f01e2a3f715",
+  "frontend/src/ros/RosBridgeClient.ts": "922498c6a8086a9709e636c8cdd2bd3caf428e125276de2f56c9661488fe5dc2",
+  "frontend/src/warehouse/WarehouseCanvas.tsx": "4bed1674e0b06864c4593c357cf3f353ace5c40e9ebf554eccdcbfaa58c405b8",
+  "frontend/src/warehouse/WarehouseLighting.tsx": "715b0200c9adc676905c8d01a025e15dccf55db6c61f6f9c5883af7e46ad1015",
+  "frontend/src/warehouse/WarehouseScene.tsx": "dff8c0b937904891b1892350b5dd7a129b2c050a76d6cef4e1bdea9404e1ab0d",
+  "frontend/tests/mapping.test.mjs": "d414267501af6ffeeb393cbb3c627929e7f33c0865b5183807cb081527330da3",
+  "frontend/e2e/dashboard.spec.ts": "a70d6e3c91fb291270ec41b267366640dbaae84a296d4bfa8e615017726fe515",
+  "frontend/e2e/rack-route.spec.ts": "1d10557d08b3aa8981cc06870fe72a07a8333ae82d2ed498de8a16b11805ae8f"
+}

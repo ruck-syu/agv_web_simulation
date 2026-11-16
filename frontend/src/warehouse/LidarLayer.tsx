@@ -2,23 +2,29 @@ import { useMemo } from 'react';
 import { useLidar } from '../simulation/LidarProvider';
 
 export function LidarLayer() {
-  const { scan, pose, live, visible } = useLidar();
-  const positions = useMemo(() => {
-    if (!scan || !pose) return new Float32Array();
-    const points: number[] = [];
-    scan.ranges.forEach((range, index) => {
+  const { scan, pose, live, visible, raysVisible } = useLidar();
+  const { positions, colors, rays } = useMemo(() => {
+    const points: number[] = [], colors: number[] = [], rays: number[] = [];
+    if (scan && pose) scan.ranges.forEach((range, index) => {
       if (range === null) return;
       const angle = pose.yaw + scan.angleMin + index * scan.angleIncrement;
-      // ROS (x,y,z) maps to Three.js (x,z,-y).
-      points.push(pose.x + range * Math.cos(angle), 1.02, -(pose.y + range * Math.sin(angle)));
+      const x = pose.x + range * Math.cos(angle), z = -(pose.y + range * Math.sin(angle));
+      points.push(x, 1.02, z);
+      colors.push(...(range < 2 ? [1, .25, .2] : [.2, .85, 1]));
+      // Decimate only the ray fan; preserve every measured endpoint.
+      if (index % 8 === 0) rays.push(pose.x, 1.02, -pose.y, x, 1.02, z);
     });
-    return new Float32Array(points);
+    return { positions: new Float32Array(points), colors: new Float32Array(colors), rays: new Float32Array(rays) };
   }, [scan, pose]);
   if (!visible || !live || !pose || positions.length === 0) return null;
-  return <points frustumCulled={false}>
-    <bufferGeometry>
-      <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-    </bufferGeometry>
-    <pointsMaterial color="#67e8f9" size={0.09} sizeAttenuation />
-  </points>;
+  return <group>
+    <points frustumCulled={false}>
+      <bufferGeometry><bufferAttribute attach="attributes-position" args={[positions, 3]} /><bufferAttribute attach="attributes-color" args={[colors, 3]} /></bufferGeometry>
+      <pointsMaterial vertexColors size={.13} sizeAttenuation depthTest={false} />
+    </points>
+    {raysVisible && <lineSegments frustumCulled={false}>
+      <bufferGeometry><bufferAttribute attach="attributes-position" args={[rays, 3]} /></bufferGeometry>
+      <lineBasicMaterial color="#21c9f3" transparent opacity={.18} depthWrite={false} />
+    </lineSegments>}
+  </group>;
 }

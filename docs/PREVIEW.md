@@ -1,19 +1,38 @@
 # Temporary public preview
 
-https://replies-arguments-because-nova.trycloudflare.com
+https://veterinary-madrid-favorite-digital.trycloudflare.com
 
-Verified HTTPS page loading and live `/odom` over the secure `/rosbridge` WebSocket.
+Verified on 2026-11-16: HTTPS page and production bundle loading, plus live `/odom` over the secure `/rosbridge` WebSocket.
 
-The static production build is served by Vite preview on port 4174 and published by the `agv-preview-tunnel` Docker container. The preview proxies `/rosbridge` to the local ROS bridge on port 9090, so remote visitors do not connect to their own localhost.
+The static production build is served by the optional Compose `preview` service (Nginx) on port 4174 and published by the `agv-preview-tunnel` Docker container. Nginx proxies `/rosbridge` directly to `simulation:9090`, so remote visitors do not connect to their own localhost. Both preview and tunnel use `restart: unless-stopped`. The tunnel uses HTTP/2 to avoid the QUIC connection timeouts seen on this network.
 
-Keep this Mac, Docker, the ROS simulation, and the preview server running. This is a temporary Quick Tunnel; recreating the tunnel produces a new URL. Stop it with `rtk proxy docker stop agv-preview-tunnel`.
+Keep this Mac awake, Docker and the ROS simulation running. This is a temporary Quick Tunnel; recreating the tunnel produces a new URL. Stop it with `rtk proxy docker stop agv-preview-tunnel`.
 
 The current build was created with:
 
 ```bash
 cd frontend
-rtk proxy env VITE_ROSBRIDGE_URL=wss://replies-arguments-because-nova.trycloudflare.com/rosbridge npm run build
-rtk npm run preview
+rtk proxy env VITE_ROSBRIDGE_URL=wss://veterinary-madrid-favorite-digital.trycloudflare.com/rosbridge npm run build
+cd ..
+rtk proxy docker compose --profile preview up -d --no-build preview
 ```
+
+Restart the existing preview and tunnel from the project root:
+
+```bash
+rtk proxy docker compose --profile preview restart preview
+rtk proxy docker restart agv-preview-tunnel
+rtk proxy docker logs --tail 30 agv-preview-tunnel
+```
+
+Read the latest hostname in the logs after a tunnel restart; if it changes, rebuild with that hostname. To recreate a missing tunnel on this project's default Compose network:
+
+```bash
+rtk proxy docker run -d --name agv-preview-tunnel --restart unless-stopped \
+  --network agv_web_simulation_default cloudflare/cloudflared:latest \
+  tunnel --no-autoupdate --protocol http2 --url http://preview:80
+```
+
+The network name follows the Compose project name; inspect `docker network ls` if the project directory/name differs. Do not start Vite preview while the Docker preview owns port 4174.
 
 A normal `npm run build` restores the default local ROS endpoint in the generated frontend.

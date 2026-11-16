@@ -365,7 +365,9 @@ npm run preview
 
 PowerShell uses `$env:VITE_ROSBRIDGE_URL = 'wss://YOUR-NEW-HOST.trycloudflare.com/rosbridge'` before `npm run build` instead of the Bash inline assignment.
 
-If cloudflared runs in Docker, the target must point to the **host's** preview service, not container localhost. Docker Desktop supplies `host.docker.internal`; plain Linux Engine may require `--add-host=host.docker.internal:host-gateway`. Keep the Host header override aligned to `localhost:4174`. Consult the [Cloudflare Quick Tunnel documentation](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/) and inspect actual network reachability.
+For a preview that survives a terminal closing, this repository also supplies an optional Nginx service. Build `frontend/dist` first, stop any Vite preview using port 4174, then run `docker compose --profile preview up -d --no-build preview` from the project root. It serves the same port and proxies `/rosbridge` to `simulation:9090`. A cloudflared container on the Compose network can target `http://preview:80` directly; see `docs/PREVIEW.md` for the current setup. Use `--protocol http2` if QUIC connections time out. This preview service does not start with the default Compose profile.
+
+If cloudflared runs in Docker while Vite runs on the host, the target must point to the **host's** preview service, not container localhost. Docker Desktop supplies `host.docker.internal`; plain Linux Engine may require `--add-host=host.docker.internal:host-gateway`. Keep the Host header override aligned to `localhost:4174`. Consult the [Cloudflare Quick Tunnel documentation](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/) and inspect actual network reachability.
 
 Keep the preview process, tunnel, Docker daemon and simulator alive. Verify both HTTPS page loading and actual ROS WebSocket messages before handing over a link. A public preview exposes the controls provided by the app; create it only within the user's requested sharing scope.
 

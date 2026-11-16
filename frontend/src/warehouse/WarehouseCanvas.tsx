@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef, type ElementRef } from 'react';
+import { Suspense, useEffect, useRef, useState, type ElementRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
@@ -220,12 +220,27 @@ function CameraRig() {
   );
 }
 
+/** Keep software WebGL from building a GPU queue that stalls ROS callbacks. */
+function RenderBudget({ software }: { software: boolean }) {
+  const elapsed = useRef(1);
+  // A positive priority takes ownership of rendering; camera/robot updates still
+  // run each frame before this callback. Hardware keeps its normal frame rate.
+  useFrame(({ gl, scene, camera }, delta) => {
+    elapsed.current += delta;
+    if (software && elapsed.current < .1) return;
+    elapsed.current = 0;
+    gl.render(scene, camera);
+  }, 1);
+  return null;
+}
+
 export function WarehouseCanvas() {
+  const [software, setSoftware] = useState(false);
   return (
     <Canvas
       className="warehouse-canvas"
-      shadows="soft"
-      dpr={[1, 1.75]}
+      shadows={software ? false : 'soft'}
+      dpr={software ? .5 : [1, 1.75]}
       camera={{
         position: WAREHOUSE_LAYOUT.cameraPresets.overview.position,
         fov: 42,
@@ -234,6 +249,10 @@ export function WarehouseCanvas() {
       }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       onCreated={({ gl }) => {
+        const context = gl.getContext();
+        const debug = context.getExtension('WEBGL_debug_renderer_info');
+        const renderer = String(context.getParameter(debug ? debug.UNMASKED_RENDERER_WEBGL : context.RENDERER));
+        setSoftware(/swiftshader|llvmpipe|software/i.test(renderer));
         gl.toneMapping = THREE.ACESFilmicToneMapping;
         gl.toneMappingExposure = 1.04;
         gl.outputColorSpace = THREE.SRGBColorSpace;
@@ -242,9 +261,10 @@ export function WarehouseCanvas() {
       <color attach="background" args={['#11161a']} />
       <fog attach="fog" args={['#12181c', 62, 145]} />
       <Suspense fallback={null}>
-        <WarehouseScene />
+        <WarehouseScene software={software} />
       </Suspense>
       <CameraRig />
+      <RenderBudget software={software} />
     </Canvas>
   );
 }

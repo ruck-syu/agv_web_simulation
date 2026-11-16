@@ -38,7 +38,19 @@ export function parseMapTransform(message: Record<string, unknown>): PlanarTrans
     const body = record(transform.transform), position = record(body?.translation), q = record(body?.rotation);
     if (!finite(position?.x) || !finite(position?.y) || !finite(q?.z) || !finite(q?.w) ||
         Math.hypot(q.z, q.w) < 1e-8) continue;
-    return { x: position.x, y: position.y, yaw: 2 * Math.atan2(q.z, q.w), receivedAt: performance.now() };
+    // This simulator uses ROS wall time. A queued TF must retain its source age;
+    // receipt time alone can make expired localization look healthy again.
+    // SLAM Toolbox intentionally future-dates TF by transform_timeout (0.5 s).
+    let ageMs = 0;
+    if (header.stamp !== undefined) {
+      const stamp = record(header.stamp);
+      if (!finite(stamp?.sec) || !Number.isInteger(stamp.sec) ||
+          !finite(stamp?.nanosec) || !Number.isInteger(stamp.nanosec) || stamp.nanosec < 0 || stamp.nanosec >= 1e9) continue;
+      ageMs = Date.now() - (stamp.sec * 1000 + stamp.nanosec / 1e6);
+      if (ageMs >= 1500 || ageMs < -1000) continue;
+    }
+    return { x: position.x, y: position.y, yaw: 2 * Math.atan2(q.z, q.w),
+      receivedAt: performance.now() - Math.max(0, ageMs) };
   }
   return null;
 }

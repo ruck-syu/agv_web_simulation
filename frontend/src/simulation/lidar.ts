@@ -25,3 +25,9 @@ export function parseScan(message: Record<string, unknown>): LidarScan | null {
     receivedAt: performance.now(),
   };
 }
+
+/** Close returns indicate proximity, including expected racks and walls. */
+export function nearestReturn(scan: LidarScan | null): number | null {
+  const ranges = scan?.ranges.filter((r): r is number => r !== null) ?? [];
+  return ranges.length ? Math.min(...ranges) : null;
+}

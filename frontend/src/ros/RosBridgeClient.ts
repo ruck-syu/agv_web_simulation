@@ -295,7 +295,11 @@ export class RosBridgeClient {
         topic: entry.topic,
         type: entry.messageType,
         queue_length: 1,
-        throttle_rate: 0,
+        // Bound dashboard traffic at the bridge, before it fills the socket's
+        // outgoing queue. Keep TF unthrottled: it multiplexes different frame
+        // pairs, so last-message-only throttling can starve map->odom.
+        throttle_rate: entry.topic === '/map' || entry.topic === '/agv_web/collision_geometry' ? 2000
+          : ['/odom', '/agv_web/ground_truth', '/joint_states', '/agv_web/odometry_status', '/scan', '/agv_web/collision_status'].includes(entry.topic) ? 100 : 0,
       }),
     );
   }

@@ -1,0 +1,9 @@
+{
+  "health": "System health\n10/10 ready\nROS bridge\nReady\nPhysical robot telemetry\nReady\nWheel odometry\nReady\nRoof LiDAR\nReady\nSLAM map\nReady\nMap localization TF\nReady\nCollision diagnostics\nReady\nNav2 lifecycle\nReady\nNavigation sensor inputs\nReady\nOperator heartbeat\nReady\n\nReadiness reflects the latest received data. Manual drive remains available while mapping. Autonomous goals require active Nav2 nodes and fresh sensor streams.",
+  "localization": "635 × 395 cells · 0.10 m/cell. White: free, dark: occupied, gray: unknown. Robot at -12.08, -6.63 m in map.",
+  "phase": "Route complete",
+  "readout": "Motion\nStopped\nSpeed\n0.00 m/s\nPosition X / Y\n-12.09 / -6.63 m\nCollision protection\nPath clear",
+  "script": [
+    "http://127.0.0.1:4174/assets/index-BFnnESaJ.js"
+  ]
+}

@@ -1,0 +1,17 @@
+npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+[WebServer] npm warn Unknown env config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+[WebServer] npm warn Unknown user config "allow-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+[WebServer] (node:61904) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 4 tests using 1 worker
+
+(node:61944) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 e2e/controller.spec.ts:3:1 › virtual standard controller drives only while armed and stops on release, focus loss, stale telemetry and unplug (5.6s)
+ROS_DIAGNOSTICS {"frames":{"/scan":{"count":282,"latest":1794847205803},"/tf":{"count":1234,"latest":1794847205777},"odom->base_link":{"count":673,"latest":1794847205777,"sourceAgeMs":3.0073300000000245},"/odom":{"count":282,"latest":1794847205777},"/agv_web/odometry_status":{"count":282,"latest":1794847205772},"/agv_web/ground_truth":{"count":282,"latest":1794847205774},"/agv_web/navigation_status":{"count":143,"latest":1794847205711},"map->odom":{"count":561,"latest":1794847205773,"sourceAgeMs":-420.67792},"/map":{"count":16,"latest":1794847205710},"/joint_states":{"count":281,"latest":1794847205715},"/agv_web/collision_status":{"count":280,"latest":1794847205720},"/agv_web/collision_geometry":{"count":15,"latest":1794847205716},"/plan":{"count":1,"latest":1794847202058}},"errors":[]}
+  ✓  2 e2e/dashboard.spec.ts:2:1 › full dashboard receives sensors, SLAM and navigation state and recovers connection (30.3s)
+  ✓  3 e2e/rack-route.spec.ts:3:1 › rack preview works offline, dark theme persists, and warehouse renders (18.1s)
+  ✓  4 e2e/rack-route.spec.ts:28:1 › rack journey sends map-frame goals in sequence and LiDAR warns of nearby obstacles (4.3s)
+
+  4 passed (1.0m)

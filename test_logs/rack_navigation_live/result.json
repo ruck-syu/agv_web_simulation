@@ -1,0 +1,182 @@
+{
+  "passed": true,
+  "startedAt": "2026-11-16T16:40:33.150Z",
+  "goals": [
+    {
+      "action": "goal",
+      "x": -11.933095076249877,
+      "y": 2.292234911058441,
+      "yaw": 1.562287819105865,
+      "at": 1794847249949,
+      "truth": {
+        "x": -11.50805027799587,
+        "y": -6.947943271375385,
+        "yaw": -0.17559586054244974
+      }
+    },
+    {
+      "action": "goal",
+      "x": -12.004063524782373,
+      "y": -6.670082301859656,
+      "yaw": -1.5715835458755092,
+      "at": 1794847270697,
+      "truth": {
+        "x": -11.895812734648883,
+        "y": 2.2005275901723587,
+        "yaw": 1.7653515078785968
+      }
+    }
+  ],
+  "transitions": [
+    {
+      "state": "canceled",
+      "detail": "Stopped by operator",
+      "mode": "manual",
+      "busy": false,
+      "server_ready": true,
+      "localization_ready": true,
+      "sensors_ready": true,
+      "operator_ready": true,
+      "distance_remaining": null,
+      "goal": [
+        -11,
+        -6.9,
+        0
+      ],
+      "at": 1794847233290,
+      "truth": {
+        "x": -11.50805027799587,
+        "y": -6.947943271375385,
+        "yaw": -0.17559586054244974
+      }
+    },
+    {
+      "state": "navigating",
+      "detail": "Nav2 is following the planned path",
+      "mode": "autonomous",
+      "busy": true,
+      "server_ready": true,
+      "localization_ready": true,
+      "sensors_ready": true,
+      "operator_ready": true,
+      "distance_remaining": 9.907092094421387,
+      "goal": [
+        -11.933095076249877,
+        2.292234911058441,
+        1.562287819105865
+      ],
+      "at": 1794847250089,
+      "truth": {
+        "x": -11.503319975547777,
+        "y": -6.948758162012343,
+        "yaw": -0.1655958605424497
+      }
+    },
+    {
+      "state": "succeeded",
+      "detail": "Goal reached",
+      "mode": "manual",
+      "busy": false,
+      "server_ready": true,
+      "localization_ready": true,
+      "sensors_ready": true,
+      "operator_ready": true,
+      "distance_remaining": 0.10000000149011612,
+      "goal": [
+        -11.933095076249877,
+        2.292234911058441,
+        1.562287819105865
+      ],
+      "at": 1794847270693,
+      "truth": {
+        "x": -11.895812734648883,
+        "y": 2.2005275901723587,
+        "yaw": 1.7653515078785968
+      }
+    },
+    {
+      "state": "navigating",
+      "detail": "Nav2 is following the planned path",
+      "mode": "autonomous",
+      "busy": true,
+      "server_ready": true,
+      "localization_ready": true,
+      "sensors_ready": true,
+      "operator_ready": true,
+      "distance_remaining": 10.470383644104004,
+      "goal": [
+        -12.004063524782373,
+        -6.670082301859656,
+        -1.5715835458755092
+      ],
+      "at": 1794847270889,
+      "truth": {
+        "x": -11.89675178752895,
+        "y": 2.2050757697535177,
+        "yaw": 1.7863515078785963
+      }
+    },
+    {
+      "state": "succeeded",
+      "detail": "Goal reached",
+      "mode": "manual",
+      "busy": false,
+      "server_ready": true,
+      "localization_ready": true,
+      "sensors_ready": true,
+      "operator_ready": true,
+      "distance_remaining": 0.4570677876472473,
+      "goal": [
+        -12.004063524782373,
+        -6.670082301859656,
+        -1.5715835458755092
+      ],
+      "at": 1794847294690,
+      "truth": {
+        "x": -12.085330209355735,
+        "y": -6.632294951370881,
+        "yaw": -1.3725180098273064
+      }
+    }
+  ],
+  "blocked": [],
+  "plans": 44,
+  "arrivals": [
+    {
+      "goal": [
+        -11.933095076249877,
+        2.292234911058441,
+        1.562287819105865
+      ],
+      "truth": {
+        "x": -11.895812734648883,
+        "y": 2.2005275901723587,
+        "yaw": 1.7653515078785968
+      },
+      "mapErrorM": 0.09121533046245489,
+      "at": 1794847270693
+    },
+    {
+      "goal": [
+        -12.004063524782373,
+        -6.670082301859656,
+        -1.5715835458755092
+      ],
+      "truth": {
+        "x": -12.085330209355735,
+        "y": -6.632294951370881,
+        "yaw": -1.3725180098273064
+      },
+      "mapErrorM": 0.09133696619502178,
+      "at": 1794847294690
+    }
+  ],
+  "maxTfGapMs": 117,
+  "reason": "two_goals_succeeded",
+  "finishedAt": "2026-11-16T16:41:34.692Z",
+  "finalTruth": {
+    "x": -12.085330209355735,
+    "y": -6.632294951370881,
+    "yaw": -1.3725180098273064
+  }
+}

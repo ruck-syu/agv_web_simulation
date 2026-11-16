@@ -1,15 +1,27 @@
 import { test, expect } from '@playwright/test';
 test('full dashboard receives sensors, SLAM and navigation state and recovers connection', async ({ page }) => {
   const errors: string[] = [];
+  const frames: Record<string, {count:number; latest:number; sourceAgeMs?:number}> = {};
+  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('websocket', socket => socket.on('framereceived', event => {
+    try {
+      const m=JSON.parse(String(event.payload));
+      if(m.op !== 'publish') return;
+      const record=(key:string,stamp?:{sec:number;nanosec:number}) => { frames[key]={count:(frames[key]?.count??0)+1,latest:Date.now(),sourceAgeMs:stamp ? Date.now()-stamp.sec*1000-stamp.nanosec/1e6 : undefined}; };
+      record(m.topic);
+      if(m.topic==='/tf') for(const t of m.msg.transforms) record(`${t.header.frame_id}->${t.child_frame_id}`,t.header.stamp);
+    } catch { /* Ignore unrelated protocol frames in diagnostics. */ }
+  }));
+  try {
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await page.evaluate(() => document.fonts.ready);
-  await expect(page.locator('.side-panel > section.panel').first().getByRole('heading')).toHaveText('Drive AGV');
-  await expect(page.locator('.side-panel > section.panel').nth(1).getByRole('heading')).toHaveText('Autonomous navigation');
+  await expect(page.locator('.side-panel > section.panel').first().getByRole('heading')).toHaveText('Rack-to-rack path planning');
+  await expect(page.locator('.side-panel > section.panel').nth(1).getByRole('heading')).toHaveText('Drive AGV');
   await expect(page.locator('.diagnostics-disclosure')).not.toHaveAttribute('open', '');
   await expect(page.getByRole('heading', { name: 'Phases 1–9' })).toHaveCount(0);
   const panel = (title: string) => page.locator('section.panel').filter({ has: page.getByRole('heading', { name: title, exact: true }) });
-  await expect(panel('2D LiDAR')).toContainText('Live scan', { timeout: 60000 });
+  await expect(panel('LiDAR · 3D scan view')).toContainText('Live scan', { timeout: 60000 });
   await page.locator('.diagnostics-disclosure > summary').click();
   await expect(panel('Wheel odometry')).toContainText('Live estimate', { timeout: 30000 });
   await expect(panel('SLAM occupancy map')).toContainText('Map received', { timeout: 30000 });
@@ -19,6 +31,7 @@ test('full dashboard receives sensors, SLAM and navigation state and recovers co
   await page.getByRole('checkbox', { name: 'Show LiDAR returns in warehouse' }).uncheck();
   await expect(page.getByRole('checkbox', { name: 'Show LiDAR returns in warehouse' })).not.toBeChecked();
   await page.getByRole('checkbox', { name: 'Show LiDAR returns in warehouse' }).check();
+  await expect(panel('SLAM occupancy map')).toContainText(/Robot at -?[\d.]+, -?[\d.]+ m/, {timeout:15000});
   const location = (await panel('SLAM occupancy map').textContent())?.match(/Robot at (-?[\d.]+), (-?[\d.]+) m/);
   expect(location).not.toBeNull();
   await page.getByLabel('Goal X (map m)', { exact: true }).fill((Number(location![1]) + 0.8).toFixed(1));
@@ -28,13 +41,18 @@ test('full dashboard receives sensors, SLAM and navigation state and recovers co
   await panel('Autonomous navigation').getByRole('button', { name: 'Cancel / stop' }).click();
   await expect(panel('Autonomous navigation')).toContainText('Stopped by operator');
   await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
-  await expect(panel('2D LiDAR')).toContainText('Awaiting scan');
+  await expect(panel('LiDAR · 3D scan view')).toContainText('Awaiting scan');
   await expect(panel('Wheel odometry')).toContainText('Awaiting estimate');
   await expect(panel('SLAM occupancy map')).toContainText('Awaiting SLAM');
   await expect(panel('Autonomous navigation').getByRole('button', { name: 'Navigate to goal' })).toBeDisabled();
   await page.getByRole('button', { name: 'Connect now', exact: true }).click();
-  await expect(panel('2D LiDAR')).toContainText('Live scan', { timeout: 15000 });
+  await expect(panel('LiDAR · 3D scan view')).toContainText('Live scan', { timeout: 15000 });
   await expect(panel('SLAM occupancy map')).toContainText('Map received', { timeout: 15000 });
   await expect(panel('System health')).toContainText('10/10 ready', { timeout: 15000 });
   expect(errors).toEqual([]);
+  } finally {
+    const ui=await page.locator('body').innerText().catch(()=> 'Page unavailable');
+    console.log('ROS_DIAGNOSTICS '+JSON.stringify({frames,errors}));
+    await test.info().attach('live-ros-diagnostics', {body:JSON.stringify({frames,errors,ui},null,2),contentType:'application/json'});
+  }
 });

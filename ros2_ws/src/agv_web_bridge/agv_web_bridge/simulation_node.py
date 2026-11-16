@@ -524,7 +524,7 @@ class SimulationNode(Node):
 
     @staticmethod
     def _build_rack_obstacles(structure: dict) -> list[Obstacle]:
-        """Expand the visual rack model into individually collidable parts."""
+        """Reserve rack floor space and retain detailed structural geometry."""
 
         template = structure['template']
         length = float(template['length'])
@@ -563,6 +563,18 @@ class SimulationNode(Node):
             row_x = float(row['cx'])
             row_y = float(row['cy'])
             face = float(row['face'])
+
+            # Storage footprints are not traffic lanes. Individual uprights and
+            # elevated shelves otherwise leave navigable holes below the first
+            # shelf for this low AGV. Use the same solid envelope for physics,
+            # both scan planes, and therefore SLAM/Nav2 obstacle observations.
+            obstacles.append(Obstacle(
+                id=f'{prefix}-NO-DRIVE', type='rack',
+                cx=row_x, cy=row_y,
+                hx=half_length + footplate_size * 0.5,
+                hy=half_depth + footplate_size * 0.5,
+                yaw=0.0, min_z=0.0, max_z=height,
+            ))
 
             for bay in range(bays + 1):
                 support_x = row_x - half_length + bay * bay_width

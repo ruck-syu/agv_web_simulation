@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import { RackRouteProvider } from './navigation/RackRouteProvider';
 import { RosProvider } from './ros/RosProvider';
 import { NavigationProvider } from './navigation/NavigationProvider';
 import { MappingProvider } from './mapping/MappingProvider';
@@ -24,7 +25,7 @@ createRoot(root).render(
         <MappingProvider>
           <LidarProvider>
             <ViewportProvider>
-              <App />
+              <RackRouteProvider><App /></RackRouteProvider>
             </ViewportProvider>
           </LidarProvider>
         </MappingProvider>

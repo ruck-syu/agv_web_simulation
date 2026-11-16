@@ -1,3 +1,4 @@
+import { RackRoutePanel } from './RackRoutePanel';
 import { NavigationPanel } from './NavigationPanel';
 import { MappingPanel } from './MappingPanel';
 import { LidarPanel } from './LidarPanel';
@@ -19,6 +20,7 @@ export function SidePanel() {
         <div><span className="asset-mark" aria-hidden="true" /><strong>AGV-07</strong></div>
         <span>Differential-drive carrier</span>
       </div>
+      <RackRoutePanel />
       <Panel title="Drive AGV" className="manual-drive-panel">
         <SimulationControls />
       </Panel>

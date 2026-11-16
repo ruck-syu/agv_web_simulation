@@ -1,3 +1,4 @@
+import { ObstacleStatus } from './ObstacleStatus';
 import { useSimulation } from '../../simulation/SimulationProvider';
 import { useViewport } from '../../viewport/ViewportProvider';
 import { Icon } from '../ui/Icon';
@@ -102,6 +103,7 @@ export function ViewportOverlay({
         </div>
       </div>
 
+      <ObstacleStatus />
       <div className="viewport-overlay__bottom">
         <div className="viewport-control-hint">
           <span><strong>Drag</strong> orbit</span>

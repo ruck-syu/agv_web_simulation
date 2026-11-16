@@ -55,7 +55,7 @@ function LedFixture({ x, z }: { x: number; z: number }) {
   );
 }
 
-export function WarehouseLighting() {
+export function WarehouseLighting({ software = false }: { software?: boolean }) {
   return (
     <>
       <ambientLight intensity={0.66} color="#c5ccd1" />
@@ -78,7 +78,7 @@ export function WarehouseLighting() {
       />
       <directionalLight position={[24, 16, -24]} intensity={0.42} color="#bacbd9" />
 
-      {PRACTICAL_LIGHTS.map((light, index) => (
+      {!software && PRACTICAL_LIGHTS.map((light, index) => (
         <pointLight
           key={`practical-${index}`}
           position={light.position}
@@ -121,13 +121,13 @@ export function WarehouseLighting() {
       </Environment>
 
       {/* A cool floor bounce keeps the underside of the AGV readable. */}
-      <pointLight
+      {!software && <pointLight
         position={[WAREHOUSE_LAYOUT.agv.spawn[0], 1.1, WAREHOUSE_LAYOUT.agv.spawn[2]]}
         intensity={8}
         distance={8}
         decay={2}
         color="#b9d1e2"
-      />
+      />}
     </>
   );
 }
