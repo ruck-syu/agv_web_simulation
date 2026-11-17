@@ -26,6 +26,9 @@ setup(
         'console_scripts': [
             'comm_test_node = agv_web_bridge.comm_test_node:main',
             'navigation_node = agv_web_bridge.navigation_node:main',
+            'fleet_simulation = agv_web_bridge.fleet_simulation:main',
+            'fleet_node = agv_web_bridge.fleet_node:main',
+            'save_map = agv_web_bridge.map_cache:main',
             'simulation_node = agv_web_bridge.simulation_node:main',
         ],
     },

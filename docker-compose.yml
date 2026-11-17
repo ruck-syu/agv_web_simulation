@@ -8,7 +8,7 @@ services:
       ROS_DOMAIN_ID: "72"
     volumes:
       - .:/workspace
-    command: ["ros2", "launch", "agv_web_bridge", "agv_navigation.launch.py"]
+    command: ["ros2", "launch", "agv_web_bridge", "agv_fleet.launch.py"]
     stop_grace_period: 15s
   preview:
     profiles: ["preview"]

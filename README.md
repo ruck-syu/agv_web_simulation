@@ -27,7 +27,15 @@ To stop ROS: `rtk proxy docker compose down`. To view ROS logs: `rtk proxy docke
 4. Enter a goal in known free space and choose **Navigate to goal**. Nav2 plans with the full rectangular footprint and follows the path. Unknown goals are not assumed traversable. Cancel/stop and manual takeover interrupt autonomy.
 5. Keep the tab visible while navigating. Missing heartbeat, stale sensors/localization or inactive Nav2 nodes stop autonomy. The simulator retains collision blocking and command timeout stopping.
 
-The map is live SLAM output, not a map prefilled from the known scene. To save it:
+The map is real SLAM output, not prefilled from scene geometry. To retain explored aisles across Docker restarts, stop the robot and save the SLAM checkpoint:
+
+```bash
+rtk proxy docker compose exec -T simulation bash -c 'source /opt/ros/humble/setup.bash && source /opt/agv_ws/install/setup.bash && ros2 run agv_web_bridge save_map'
+```
+
+Startup automatically restores a checkpoint matching the current warehouse geometry from `maps/warehouse.json`. Save again after further exploration. See [map persistence and restart validation](docs/MAP_PERSISTENCE.md).
+
+To export a separate occupancy-grid PGM/YAML map:
 
 ```bash
 rtk proxy docker compose exec simulation bash -c 'source /opt/ros/humble/setup.bash && ros2 run nav2_map_server map_saver_cli -f /workspace/warehouse_map'

@@ -171,7 +171,7 @@ class NavigationNode(Node):
             status = future.result().status
             self.state = ('succeeded' if status == GoalStatus.STATUS_SUCCEEDED else
                           'canceled' if status == GoalStatus.STATUS_CANCELED else 'failed')
-            self.detail = {'succeeded': 'Goal reached', 'canceled': 'Goal canceled', 'failed': 'Navigation did not reach the goal'}[self.state]
+            self.detail = {'succeeded': 'Goal reached', 'canceled': 'Goal canceled', 'failed': 'Nav2 could not find or follow a safe route. Check that the destination is connected by mapped, clear aisles.'}[self.state]
         except Exception as error:
             self.state, self.detail = 'failed', str(error)
 

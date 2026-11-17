@@ -331,8 +331,11 @@ def contact_point_with_obstacle(
 class SimulationNode(Node):
     """Fixed-step differential drive, odometry, TF and collision publisher."""
 
-    def __init__(self) -> None:
-        super().__init__('agv_web_simulation')
+    def __init__(self, **kwargs) -> None:
+        super().__init__('agv_web_simulation', **kwargs)
+        self.declare_parameter('frame_prefix', '')
+        self.frame_prefix = str(self.get_parameter('frame_prefix').value)
+        self.dynamic_obstacles = lambda: []
 
         default_config = self._default_config_path()
         self.declare_parameter('config_file', default_config)
@@ -443,14 +446,14 @@ class SimulationNode(Node):
         self.static_tf_broadcaster = StaticTransformBroadcaster(self)
         sensor_transform = TransformStamped()
         sensor_transform.header.stamp = self.get_clock().now().to_msg()
-        sensor_transform.header.frame_id = BASE_FRAME
-        sensor_transform.child_frame_id = LIDAR_FRAME
+        sensor_transform.header.frame_id = (self.frame_prefix + BASE_FRAME)
+        sensor_transform.child_frame_id = (self.frame_prefix + LIDAR_FRAME)
         sensor_transform.transform.translation.z = LIDAR_HEIGHT
         sensor_transform.transform.rotation.w = 1.0
         obstacle_transform = TransformStamped()
         obstacle_transform.header.stamp = sensor_transform.header.stamp
-        obstacle_transform.header.frame_id = BASE_FRAME
-        obstacle_transform.child_frame_id = 'obstacle_laser_frame'
+        obstacle_transform.header.frame_id = (self.frame_prefix + BASE_FRAME)
+        obstacle_transform.child_frame_id = (self.frame_prefix + 'obstacle_laser_frame')
         obstacle_transform.transform.translation.z = 0.02
         obstacle_transform.transform.rotation.w = 1.0
         self.static_tf_broadcaster.sendTransform([sensor_transform, obstacle_transform])
@@ -471,7 +474,7 @@ class SimulationNode(Node):
             f'Subscribing {CMD_VEL_TOPIC}; publishing {ODOM_TOPIC}, '
             f'{JOINT_STATE_TOPIC}, {COLLISION_TOPIC}, '
             f'{COLLISION_GEOMETRY_TOPIC}, /scan, {TRUTH_TOPIC}, '
-            f'{ODOMETRY_STATUS_TOPIC} and TF {ODOM_FRAME}->{BASE_FRAME}.'
+            f'{ODOMETRY_STATUS_TOPIC} and TF {(self.frame_prefix + ODOM_FRAME)}->{(self.frame_prefix + BASE_FRAME)}.'
         )
 
     @staticmethod
@@ -668,7 +671,7 @@ class SimulationNode(Node):
 
     def _current_collision(self) -> Optional[Obstacle]:
         return find_collision(
-            self.obstacles,
+            self.obstacles + self.dynamic_obstacles(),
             self.x,
             self.y,
             self.yaw,
@@ -679,7 +682,7 @@ class SimulationNode(Node):
 
     def _pose_collision(self, x: float, y: float, yaw: float) -> Optional[Obstacle]:
         return find_collision(
-            self.obstacles,
+            self.obstacles + self.dynamic_obstacles(),
             x,
             y,
             yaw,
@@ -861,7 +864,7 @@ class SimulationNode(Node):
     def _publish_scan(self) -> None:
         message = LaserScan()
         message.header.stamp = self.get_clock().now().to_msg()
-        message.header.frame_id = LIDAR_FRAME
+        message.header.frame_id = (self.frame_prefix + LIDAR_FRAME)
         message.angle_min = -math.pi
         message.angle_increment = math.tau / 360
         message.angle_max = message.angle_min + 359 * message.angle_increment
@@ -870,16 +873,16 @@ class SimulationNode(Node):
         message.time_increment = 0.0
         message.range_min = 0.05
         message.range_max = 30.0
-        message.ranges = scan_ranges(self.obstacles, self.x, self.y, self.yaw)
+        message.ranges = scan_ranges(self.obstacles + self.dynamic_obstacles(), self.x, self.y, self.yaw)
         self.scan_publisher.publish(message)
         low_scan = LaserScan()
         low_scan.header.stamp = message.header.stamp
-        low_scan.header.frame_id = 'obstacle_laser_frame'
+        low_scan.header.frame_id = (self.frame_prefix + 'obstacle_laser_frame')
         low_scan.angle_min, low_scan.angle_max = message.angle_min, message.angle_max
         low_scan.angle_increment, low_scan.scan_time = message.angle_increment, message.scan_time
         low_scan.time_increment = 0.0
         low_scan.range_min, low_scan.range_max = message.range_min, message.range_max
-        low_scan.ranges = scan_ranges(self.obstacles, self.x, self.y, self.yaw, height=0.02)
+        low_scan.ranges = scan_ranges(self.obstacles + self.dynamic_obstacles(), self.x, self.y, self.yaw, height=0.02)
         self.obstacle_scan_publisher.publish(low_scan)
 
     def _publish_state(self, now: float) -> None:
@@ -889,8 +892,8 @@ class SimulationNode(Node):
 
         odometry = Odometry()
         odometry.header.stamp = stamp
-        odometry.header.frame_id = ODOM_FRAME
-        odometry.child_frame_id = BASE_FRAME
+        odometry.header.frame_id = (self.frame_prefix + ODOM_FRAME)
+        odometry.child_frame_id = (self.frame_prefix + BASE_FRAME)
         odometry.pose.pose.position.x = estimate.x
         odometry.pose.pose.position.y = estimate.y
         odometry.pose.pose.position.z = 0.0
@@ -909,7 +912,7 @@ class SimulationNode(Node):
         truth.header.stamp = stamp
         truth.header.frame_id = WORLD_FRAME
         # This child is diagnostic only; do not give base_link a second TF parent.
-        truth.child_frame_id = 'ground_truth_base_link'
+        truth.child_frame_id = (self.frame_prefix + 'ground_truth_base_link')
         truth.pose.pose.position.x = self.x
         truth.pose.pose.position.y = self.y
         truth.pose.pose.orientation = quaternion_from_yaw(self.yaw)
@@ -931,15 +934,15 @@ class SimulationNode(Node):
 
         joint_state = JointState()
         joint_state.header.stamp = stamp
-        joint_state.name = [LEFT_JOINT, RIGHT_JOINT]
+        joint_state.name = [(self.frame_prefix + LEFT_JOINT), (self.frame_prefix + RIGHT_JOINT)]
         joint_state.position = [self.left_wheel_angle, self.right_wheel_angle]
         joint_state.velocity = [self.left_wheel_velocity, self.right_wheel_velocity]
         self.joint_publisher.publish(joint_state)
 
         transform = TransformStamped()
         transform.header.stamp = stamp
-        transform.header.frame_id = ODOM_FRAME
-        transform.child_frame_id = BASE_FRAME
+        transform.header.frame_id = (self.frame_prefix + ODOM_FRAME)
+        transform.child_frame_id = (self.frame_prefix + BASE_FRAME)
         transform.transform.translation.x = estimate.x
         transform.transform.translation.y = estimate.y
         transform.transform.translation.z = 0.0

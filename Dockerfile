@@ -7,4 +7,4 @@ COPY ros2_ws/src /opt/agv_ws/src
 RUN . /opt/ros/humble/setup.sh && cd /opt/agv_ws && colcon build --symlink-install
 WORKDIR /workspace
 ENTRYPOINT ["/bin/bash", "-c", "source /opt/ros/humble/setup.bash && source /opt/agv_ws/install/setup.bash && exec \"$@\"", "--"]
-CMD ["ros2", "launch", "agv_web_bridge", "agv_navigation.launch.py"]
+CMD ["ros2", "launch", "agv_web_bridge", "agv_fleet.launch.py"]
