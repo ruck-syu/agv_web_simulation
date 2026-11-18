@@ -1,3 +1,4 @@
+import { FleetMapOverlay } from '../../fleet/FleetPanel';
 import { useId } from 'react';
 import { rackStops, useRackRoute } from '../../navigation/RackRouteProvider';
 import { Panel } from '../ui/Panel';
@@ -16,10 +17,11 @@ export function RackRoutePanel() {
       {route.boxes.map((b, i) => <rect key={i} x={b.minX} y={-b.maxY} width={b.maxX-b.minX} height={b.maxY-b.minY} fill="var(--line)" />)}
       <polyline points={route.preview.map(p => `${p.x},${-p.y}`).join(' ')} stroke="#21c9f3" strokeWidth=".35" fill="none" />
       {rackStops.filter(r => r.id === route.source || r.id === route.destination).map(r => <g key={r.id}><circle cx={r.x} cy={-r.y} r=".65" fill={r.id === route.source ? '#4ade80' : '#ffb454'} /><text x={r.x+1} y={-r.y+.5} fill="var(--text)" fontSize="1.8">{r.id}</text></g>)}
+      <FleetMapOverlay />
     </svg>
     <div className="button-row"><button className="button button--primary" disabled={!route.canStart} onClick={route.start}>Start rack route</button><button className="button" disabled={!route.running} onClick={route.stop}>Stop rack route</button></div>
-    {!route.canStart && !route.running && route.preview.length > 0 && <p className="panel__footnote">Live travel requires Nav2 and fresh robot localization. The route preview remains available.</p>}
+    {!route.canStart && !route.running && route.preview.length > 0 && <p className="panel__footnote">Live travel requires fleet readiness and fresh world telemetry. The route preview remains available.</p>}
     {route.error && <p role="alert">{route.error}</p>}
-    <p className="panel__footnote">Cyan: instant warehouse preview. Green: live Nav2 plan. The AGV visits the source, then the destination. Nav2 replans using its live map; preview distance excludes travel to the source. Preview uses known geometry, not a guarantee of free space.</p>
+    <p className="panel__footnote">Each robot visits its own source, then destination in world coordinates. Solid lines preview static geometry; dashed lines show reserved live plans. Preview distance excludes travel to source. The coordinator may wait or choose a different route.</p>
   </Panel>;
 }

@@ -25,12 +25,3 @@ export function formatLogTime(isoTimestamp: string): string {
     second: '2-digit',
   });
 }
-
-export function formatMessageTime(isoTimestamp: string): string {
-  return new Date(isoTimestamp).toLocaleTimeString('en-GB', {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
-}

@@ -1,3 +1,5 @@
+import { ROBOTS, RobotScope } from '../fleet/RobotContext';
+import { ReservationLayer } from '../fleet/ReservationLayer';
 import { RouteLayer } from './RouteLayer';
 import { LidarLayer } from './LidarLayer';
 import { AgvModel } from '../robot/AgvModel';
@@ -15,14 +17,12 @@ export function WarehouseScene({ software = false }: { software?: boolean }) {
       <WarehouseLighting software={software} />
       <WarehouseFloor />
       <WarehouseStructure />
-      <CollisionDebugLayer />
-      <LidarLayer />
-      <RouteLayer />
+      <ReservationLayer />
+      {ROBOTS.map(id => <RobotScope id={id} key={id}><CollisionDebugLayer /><LidarLayer /><RouteLayer /><AgvModel /></RobotScope>)}
       {WAREHOUSE_LAYOUT.rack.rows.map((row) => (
         <RackRow key={row.id} row={row} />
       ))}
       <StagingArea />
-      <AgvModel />
     </>
   );
 }

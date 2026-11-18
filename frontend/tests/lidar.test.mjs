@@ -23,3 +23,9 @@ test('rejects malformed metadata and unsupported sensor frames', () => {
     assert.equal(parseScan({ ...message, ...patch }), null);
   }
 });
+
+test('fleet scan frames require the matching robot namespace', () => {
+  const message = { header: {frame_id:'agv2/laser_frame'}, angle_min:0, angle_increment:1, range_min:.1, range_max:10, ranges:[1,2,3,4] };
+  assert.ok(parseScan(message, 'agv2/laser_frame'));
+  assert.equal(parseScan(message, 'agv1/laser_frame'), null);
+});

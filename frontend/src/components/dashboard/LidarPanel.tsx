@@ -1,9 +1,11 @@
+import { useRobotId } from '../../fleet/RobotContext';
 import { useLidar } from '../../simulation/LidarProvider';
 import { Panel } from '../ui/Panel';
 import { FieldRow } from '../ui/FieldRow';
 import { StatusBadge } from '../ui/StatusBadge';
 
 export function LidarPanel() {
+  const robotId = useRobotId();
   const { scan, live, visible, setVisible, raysVisible, setRaysVisible } = useLidar();
   const hits = scan?.ranges.filter((value): value is number => value !== null) ?? [];
   const nearest = hits.length ? Math.min(...hits) : null;
@@ -12,9 +14,9 @@ export function LidarPanel() {
       actions={<StatusBadge tone={live ? 'success' : 'warning'}>{live ? 'Live scan' : 'Awaiting scan'}</StatusBadge>}>
       <label className="lidar-toggle">
         <input type="checkbox" checked={visible} onChange={(event) => setVisible(event.target.checked)} />
-        Show LiDAR returns in warehouse
+        Show {robotId} LiDAR returns in warehouse
       </label>
-      <label className="lidar-toggle"><input type="checkbox" checked={raysVisible} onChange={event => setRaysVisible(event.target.checked)} />Show scan rays in 3D</label>
+      <label className="lidar-toggle"><input type="checkbox" checked={raysVisible} onChange={event => setRaysVisible(event.target.checked)} />Show {robotId} scan rays in 3D</label>
       <FieldRow label="Returns / rays" value={live && scan ? `${hits.length} / ${scan.ranges.length}` : '—'} />
       <FieldRow label="Nearest return" value={live && nearest !== null ? `${nearest.toFixed(2)} m` : '—'} />
       <FieldRow label="Range" value={live && scan ? `${scan.rangeMin.toFixed(2)}–${scan.rangeMax.toFixed(0)} m` : '—'} />

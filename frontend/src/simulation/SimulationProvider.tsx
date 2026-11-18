@@ -1,8 +1,7 @@
+import { createRobotContext, useRobotId } from '../fleet/RobotContext';
 import { parseOdom } from './telemetry';
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -32,7 +31,7 @@ interface SimulationContextValue {
   collisionGeometry: CollisionGeometry | null;
 }
 
-const SimulationContext = createContext<SimulationContextValue | null>(null);
+const SimulationContext = createRobotContext<SimulationContextValue>();
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
@@ -69,12 +68,12 @@ function parseJointState(
 
   names.forEach((name, index) => {
     if (typeof name !== 'string') return;
-    if (name === 'left_wheel_joint') {
+    if (name.endsWith('/left_wheel_joint')) {
       leftWheelAngle = asNumber(positions[index], leftWheelAngle);
       leftWheelVelocity = asNumber(velocities[index], leftWheelVelocity);
       found = true;
     }
-    if (name === 'right_wheel_joint') {
+    if (name.endsWith('/right_wheel_joint')) {
       rightWheelAngle = asNumber(positions[index], rightWheelAngle);
       rightWheelVelocity = asNumber(velocities[index], rightWheelVelocity);
       found = true;
@@ -181,7 +180,10 @@ function parseCollisionGeometry(data: string): CollisionGeometry | null {
 }
 
 export function SimulationProvider({ children }: { children: ReactNode }) {
-  const { state, subscribe, publish, appendLog } = useRos();
+  const robotId = useRobotId();
+  const { state, subscribe: rawSubscribe, publish: rawPublish, appendLog } = useRos();
+  const subscribe = useCallback((topic: string, type: string, callback: (m: Record<string, unknown>) => void) => rawSubscribe(`/${robotId}${topic}`, type, callback), [rawSubscribe, robotId]);
+  const publish = useCallback((topic: string, type: string, message: Record<string, unknown>) => rawPublish(`/${robotId}${topic}`, type, message), [rawPublish, robotId]);
   const telemetryRef = useRef<RobotTelemetry | null>(null);
   const wheelOdometryRef = useRef<RobotTelemetry | null>(null);
   const odometryStatusRef = useRef<OdometryStatus | null>(null);
@@ -232,7 +234,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       truthTopic.name,
       truthTopic.messageType,
       (message) => {
-        const parsed = parseOdom(message, 'world', 'ground_truth_base_link');
+        const parsed = parseOdom(message, 'world', `${robotId}/ground_truth_base_link`);
         if (!parsed) return;
         poseSequenceRef.current += 1;
         const previous = telemetryRef.current;
@@ -248,13 +250,13 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
         };
         if (!firstTruthLoggedRef.current) {
           firstTruthLoggedRef.current = true;
-          appendLog('success', 'SIM', 'Authoritative pose received from /agv_web/ground_truth.');
+          appendLog('success', `${robotId} SIM`, `Authoritative pose received from /${robotId}/agv_web/ground_truth.`);
         }
       },
     );
 
     const odomSubscription = subscribe(odomTopic.name, odomTopic.messageType, (message) => {
-      const parsed = parseOdom(message, 'odom', 'base_link');
+      const parsed = parseOdom(message, `${robotId}/odom`, `${robotId}/base_link`);
       if (parsed) wheelOdometryRef.current = parsed;
     });
     const odometryStatusSubscription = subscribe(
@@ -285,7 +287,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
         if (!parsed) {
           if (!collisionParseWarningRef.current) {
             collisionParseWarningRef.current = true;
-            appendLog('warning', 'SAFETY', 'Ignored malformed collision status payload.');
+            appendLog('warning', `${robotId} SAFETY`, 'Ignored malformed collision status payload.');
           }
           return;
         }
@@ -294,19 +296,19 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
         if (parsed.blocked && !previous.blocked) {
           appendLog(
             'warning',
-            'SAFETY',
+            `${robotId} SAFETY`,
             `Movement blocked by ${parsed.blockedObjectId ?? 'unknown obstacle'}${
               parsed.blockedObjectType ? ` (${parsed.blockedObjectType})` : ''
             }.`,
           );
         } else if (!parsed.blocked && previous.blocked && parsed.state === 'clear') {
-          appendLog('success', 'SAFETY', 'Collision path clear; movement resumed.');
+          appendLog('success', `${robotId} SAFETY`, 'Collision path clear; movement resumed.');
         }
         if (parsed.commandTimedOut && !previous.timedOut) {
           appendLog(
             'warning',
-            'SAFETY',
-            `No /cmd_vel for ${(APP_CONFIG.simulation.commandTimeoutMs / 1000).toFixed(1)}s; robot stopped by the backend.`,
+            `${robotId} SAFETY`,
+            `No fresh velocity command for ${(APP_CONFIG.simulation.commandTimeoutMs / 1000).toFixed(2)} s. Backend stopped the robot.`,
           );
         }
         collisionLogRef.current = {
@@ -382,11 +384,13 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
         return true;
       } catch (error) {
         commandErrorRef.current =
-          error instanceof Error ? error.message : 'Unable to publish /cmd_vel.';
+          error instanceof Error
+            ? error.message
+            : `Unable to publish /${robotId}/agv_web/manual_cmd_vel.`;
         return false;
       }
     },
-    [publish],
+    [publish, robotId],
   );
 
   const stopRobot = useCallback(() => sendTwist(0, 0), [sendTwist]);
@@ -422,10 +426,4 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
   return <SimulationContext.Provider value={value}>{children}</SimulationContext.Provider>;
 }
 
-export function useSimulation(): SimulationContextValue {
-  const context = useContext(SimulationContext);
-  if (!context) {
-    throw new Error('useSimulation must be used inside SimulationProvider.');
-  }
-  return context;
-}
+export function useSimulation() { return SimulationContext.useValue(); }

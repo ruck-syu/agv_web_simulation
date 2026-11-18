@@ -1,11 +1,13 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useFleet } from '../fleet/FleetProvider';
+import type { SourceGoal } from '../fleet/types';
+import { createRobotContext, useRobotId } from '../fleet/RobotContext';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { WAREHOUSE_LAYOUT } from '../config/warehouseConfig';
 import collisionConfig from '../../../ros2_ws/src/agv_web_bridge/config/warehouse_collision.json';
 import { useSimulation } from '../simulation/SimulationProvider';
-import { useMapping } from '../mapping/MappingProvider';
-import { transformPose } from '../mapping/types';
 import { useNavigation } from './NavigationProvider';
-import { distance, planRoute, type RouteBox } from './routePlanner';
+import { useRos } from '../ros/RosProvider';
+import { distance, planFleetRoute, type RouteBox } from './routePlanner';
 import type { PathPoint } from './types';
 
 export const rackStops = WAREHOUSE_LAYOUT.rack.rows.map(row => ({
@@ -25,71 +27,147 @@ const staticBoxes = collisionConfig.obstacles.filter(o => o.type !== 'wall').map
 interface RackRouteState {
   source: string; destination: string; select: (source: string, destination: string) => void;
   preview: PathPoint[]; length: number; boxes: RouteBox[]; phase: string; error: string | null;
-  start: () => void; stop: () => void; running: boolean; canStart: boolean;
+  start: () => string | null; stop: () => void; running: boolean; canStart: boolean; startIssue: () => string | null;
+  sourceGoal: SourceGoal | null; destinationGoal: SourceGoal | null;
+  beginPair: (id: string) => void; rejectPair: (id: string) => void;
 }
-const Context = createContext<RackRouteState | null>(null);
+type RackJob = {
+  leg: number; expected: PathPoint; requestId: string; sentAt: number; acknowledged: boolean;
+  paired: boolean; previousRequestId: string | null;
+};
+const Context = createRobotContext<RackRouteState>();
 export function RackRouteProvider({ children }: { children: ReactNode }) {
   const [source, setSource] = useState('B2'), [destination, setDestination] = useState('D1');
   const [phase, setPhase] = useState('Preview'), [error, setError] = useState<string | null>(null);
+  const robotId = useRobotId();
+  const { live: fleetLive, fleet } = useFleet();
   const { snapshot, collisionGeometry } = useSimulation();
-  const { transform } = useMapping();
-  const { status, sendGoal, cancel } = useNavigation();
-  const job = useRef<{ leg: number; expected: PathPoint; sentAt: number; acknowledged: boolean } | null>(null);
+  const { publish } = useRos();
+  const { status, sendGoal, beginGoal, forgetGoal, cancel } = useNavigation();
+  const job = useRef<RackJob | null>(null);
   const [running, setRunning] = useState(false);
   const boxes = useMemo(() => [...rackBoxes, ...(collisionGeometry ? collisionGeometry.obstacles.filter(o => !['wall', 'rack', 'rack_upright', 'rack_beam', 'rack_guard', 'rack_brace', 'rack_footplate'].includes(o.type) && !o.id.startsWith('RACK')).map(o => {
     const hx = Math.abs(Math.cos(o.yaw)) * o.hx + Math.abs(Math.sin(o.yaw)) * o.hy + clearance;
     const hy = Math.abs(Math.sin(o.yaw)) * o.hx + Math.abs(Math.cos(o.yaw)) * o.hy + clearance;
     return { minX: o.cx - hx, maxX: o.cx + hx, minY: o.cy - hy, maxY: o.cy + hy };
   }) : staticBoxes)], [collisionGeometry]);
-  const from = rackStops.find(r => r.id === source)!, to = rackStops.find(r => r.id === destination)!;
-  const preview = useMemo(() => source === destination ? [] : planRoute(from, to, boxes), [source, destination, from, to, boxes]);
+  const from = rackStops.find(r => r.id === source), to = rackStops.find(r => r.id === destination);
+  const preview = useMemo(() => !from || !to || source === destination ? [] : planFleetRoute(from, to), [source, destination, from, to, boxes]);
   const length = preview.reduce((sum, p, i) => sum + (i ? distance(preview[i - 1], p) : 0), 0);
-  const now = performance.now();
-  const canStart = !running && preview.length > 0 && snapshot.connectionStatus === 'connected' && !snapshot.stale &&
-    !!snapshot.telemetry && !!snapshot.wheelOdometry && now - snapshot.wheelOdometry.poseReceivedAt < 1500 &&
-    !!transform && now - transform.receivedAt < 1500 && !!status && now - status.receivedAt < 1500 &&
-    !status.busy && status.serverReady && status.sensorsReady && status.localizationReady && status.operatorReady;
+  const startIssue = () => {
+    const now = performance.now();
+    if (!from || !to || !preview.length) return 'No valid source/destination route.';
+    if (snapshot.connectionStatus !== 'connected') return 'Disconnected.';
+    if (!fleetLive || !fleet || now - fleet.receivedAt >= 1500) return 'Fleet telemetry stale.';
+    if (fleet.safety_stop) return 'Safety stop active.';
+    if (running || job.current || status?.busy || fleet.robots[robotId].busy) return 'Already running.';
+    if (snapshot.stale || !snapshot.telemetry || now - snapshot.telemetry.poseReceivedAt >= 1500 ||
+        !snapshot.wheelOdometry || now - snapshot.wheelOdometry.poseReceivedAt >= 1500) return 'World telemetry or odometry stale.';
+    if (!status || now - status.receivedAt >= 1500 || !status.ready || !fleet.robots[robotId].ready) return 'Coordinator not ready or stale.';
+    return null;
+  };
+  const canStart = startIssue() === null;
+  const beginLeg = (leg: number, target: PathPoint, requestId: string, paired = false) => {
+    job.current = {
+      leg, expected: { x: target.x, y: target.y }, requestId, sentAt: performance.now(),
+      acknowledged: false, paired, previousRequestId: status?.requestId ?? null,
+    };
+    setRunning(true);
+    setPhase(leg === 0 ? 'Travelling to source rack' : 'Travelling to destination rack');
+  };
   const dispatch = (leg: number): string | null => {
-    const truth = snapshot.telemetry, odom = snapshot.wheelOdometry;
-    if (!transform || !truth || !odom || snapshot.stale || performance.now() - transform.receivedAt > 1500 || performance.now() - odom.poseReceivedAt > 1500) return 'Fresh localization and robot telemetry are required.';
-    const localized = transformPose(transform, odom.pose);
-    const rotation = localized.yaw - truth.pose.yaw;
+    if (snapshot.stale || !snapshot.wheelOdometry || performance.now() - snapshot.wheelOdometry.poseReceivedAt > 1500) return 'Fresh world telemetry and odometry required.';
     const target = leg === 0 ? from : to;
-    const dx = target.x - truth.pose.x, dy = target.y - truth.pose.y;
-    const expected = { x: localized.x + Math.cos(rotation) * dx - Math.sin(rotation) * dy,
-      y: localized.y + Math.sin(rotation) * dx + Math.cos(rotation) * dy };
-    const issue = sendGoal(expected.x, expected.y, target.yaw + rotation);
-    if (!issue) { job.current = { leg, expected, sentAt: performance.now(), acknowledged: false }; setRunning(true); setPhase(leg === 0 ? 'Travelling to source rack' : 'Travelling to destination rack'); }
-    return issue;
+    if (!target) return 'No valid rack goal.';
+    const result = sendGoal(target.x, target.y, target.yaw);
+    if (typeof result === 'string') return result;
+    beginLeg(leg, target, result.id);
+    return null;
+  };
+  const rackGoal = (rack: typeof from): SourceGoal | null =>
+    rack ? { action: 'goal', x: rack.x, y: rack.y, yaw: rack.yaw } : null;
+  const sourceGoal = rackGoal(from), destinationGoal = rackGoal(to);
+  const beginPair = (requestId: string) => {
+    if (!sourceGoal) return;
+    setError(null);
+    beginGoal();
+    beginLeg(0, sourceGoal, requestId, true);
+  };
+  const rejectPair = (requestId: string) => {
+    if (job.current?.requestId !== requestId) return;
+    job.current = null;
+    forgetGoal();
+    setRunning(false);
+    setPhase('Start rejected');
+  };
+  const cancelJob = (active: RackJob) => {
+    if (!active.paired) { cancel(); return; }
+    forgetGoal();
+    try {
+      publish('/fleet/start_pair', 'std_msgs/msg/String', {
+        data: JSON.stringify({ action: 'cancel', request_id: active.requestId }),
+      });
+    } catch { /* coordinator heartbeat stops motion after disconnect */ }
+  };
+  const endJob = (nextPhase: string) => {
+    job.current = null;
+    setRunning(false);
+    setPhase(nextPhase);
   };
   useEffect(() => {
     const active = job.current;
     if (!active) return;
     if (snapshot.connectionStatus !== 'connected' || snapshot.stale || !status || performance.now() - status.receivedAt > 1500) {
-      job.current = null; setRunning(false); setPhase('Interrupted'); return;
+      endJob('Interrupted'); cancelJob(active); return;
     }
     if (performance.now() - active.sentAt > 10000 && !active.acknowledged) {
-      job.current = null; setRunning(false); setPhase('Interrupted'); setError('Nav2 did not acknowledge the goal.'); cancel(); return;
+      endJob('Interrupted'); setError('Fleet coordinator did not acknowledge the goal.'); cancelJob(active); return;
     }
-    if (status.receivedAt <= active.sentAt || !status.goal || distance(active.expected, { x: status.goal[0], y: status.goal[1] }) > .05) return;
-    if (status.busy) active.acknowledged = true;
-    if (!active.acknowledged) return;
+    if (status.receivedAt <= active.sentAt) return;
+    // Receipt time alone cannot correlate queued terminal messages to a new goal.
+    // Updated coordinators echo the request id even after clearing the goal.
+    const matchingRequest = status.requestId === active.requestId;
+    if (status.requestId !== null && !matchingRequest) {
+      if (!active.acknowledged && status.requestId === active.previousRequestId) return;
+      endJob('Interrupted');
+      if (active.paired) cancelJob(active);
+      return;
+    }
+    if (matchingRequest || (!active.paired && status.busy && status.goal &&
+        distance(active.expected, { x: status.goal[0], y: status.goal[1] }) < .05)) active.acknowledged = true;
+    if (!active.acknowledged || (active.paired && !matchingRequest)) return;
+    if (active.paired && status.pairLeg === 1 && active.leg === 0) {
+      active.leg = 1;
+      setPhase('Travelling to destination rack');
+    }
     if (status.state === 'succeeded') {
       job.current = null;
-      if (active.leg === 0) { const issue = dispatch(1); if (issue) { setError(issue); setRunning(false); setPhase('Interrupted'); } }
+      if (!active.paired && active.leg === 0) { const issue = dispatch(1); if (issue) { setError(issue); endJob('Interrupted'); } }
       else { setRunning(false); setPhase('Route complete'); }
-    } else if (['failed', 'canceled', 'stopped', 'rejected', 'unavailable'].includes(status.state) || (!status.busy && status.mode === 'manual')) {
+    } else if (['failed', 'canceled', 'stopped', 'rejected', 'unavailable', 'safety_stop'].includes(status.state) || (!status.busy && status.mode === 'manual')) {
       job.current = null; setRunning(false); setPhase('Interrupted');
     }
   });
-  const stop = () => { job.current = null; setRunning(false); setPhase('Stopped'); cancel(); };
+  const stop = () => {
+    const active = job.current;
+    endJob('Stopped');
+    if (active) cancelJob(active);
+    else cancel();
+  };
+  useEffect(() => {
+    const stopAll = () => { job.current = null; setRunning(false); setPhase('Stopped'); };
+    window.addEventListener('fleet-stop-all', stopAll);
+    return () => window.removeEventListener('fleet-stop-all', stopAll);
+  }, []);
   const start = () => {
     setError(null);
-    if (!preview.length) { setError('No route available between these racks.'); return; }
-    if (!status || status.busy || !status.serverReady || !status.sensorsReady || !status.localizationReady || !status.operatorReady || performance.now() - status.receivedAt > 1500) { setError('Wait for Nav2 and fresh sensors/localization.'); return; }
-    setError(dispatch(0));
+    const issue = startIssue() ?? dispatch(0);
+    setError(issue);
+    return issue;
   };
   const select = (a: string, b: string) => { if (running) return; setSource(a); setDestination(b); setError(null); setPhase('Preview'); };
-  return <Context.Provider value={{ source, destination, select, preview, boxes, length, phase, error, start, stop, running, canStart }}>{children}</Context.Provider>;
+  return <Context.Provider value={{ source, destination, select, preview, boxes, length, phase, error, start, stop, running, canStart, startIssue, sourceGoal, destinationGoal, beginPair, rejectPair }}>{children}</Context.Provider>;
 }
-export function useRackRoute() { const value = useContext(Context); if (!value) throw new Error('RackRouteProvider required'); return value; }
+export function useRackRoute() { return Context.useValue(); }
+
+export function useRackRoutes() { return Context.useValues(); }

@@ -3,6 +3,8 @@ import { APP_CONFIG } from '../config/appConfig';
 import { Icon } from '../components/ui/Icon';
 import { useSimulation } from './SimulationProvider';
 
+import { useFleet } from '../fleet/FleetProvider';
+import { useRobotId } from '../fleet/RobotContext';
 import { useGamepadDrive } from './useGamepadDrive';
 
 type Direction = 'forward' | 'backward' | 'left' | 'right';
@@ -18,7 +20,7 @@ function isEditableTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   const tag = target.tagName;
   return (
-    tag === 'INPUT' ||
+    (target instanceof HTMLInputElement && !['radio', 'checkbox', 'button', 'submit', 'reset', 'range', 'color'].includes(target.type)) ||
     tag === 'TEXTAREA' ||
     tag === 'SELECT' ||
     target.isContentEditable
@@ -26,6 +28,9 @@ function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 export function SimulationControls() {
+  const { fleet, live: fleetLive } = useFleet();
+  const robotId = useRobotId();
+  const safetyStop = !!fleet?.safety_stop;
   const { snapshot, sendTwist, stopRobot } = useSimulation();
   const [linearSpeed, setLinearSpeed] = useState<number>(
     APP_CONFIG.simulation.defaultLinearSpeed,
@@ -45,8 +50,11 @@ export function SimulationControls() {
   linearRef.current = linearSpeed;
   angularRef.current = angularSpeed;
 
-  const gamepad = useGamepadDrive(controllerEnabled, connected && !snapshot.stale,
-    linearSpeed, angularSpeed, sendTwist);
+  const driveReady = connected && !snapshot.stale && fleetLive;
+  const gamepad = useGamepadDrive(controllerEnabled, driveReady,
+    safetyStop ? Math.min(linearSpeed, .2) : linearSpeed, safetyStop ? Math.min(angularSpeed, .3) : angularSpeed, sendTwist);
+  linearRef.current = safetyStop ? Math.min(linearSpeed, .2) : linearSpeed;
+  angularRef.current = safetyStop ? Math.min(angularSpeed, .3) : angularSpeed;
 
   const publishActive = useCallback(() => {
     const direction = activeRef.current;
@@ -84,7 +92,7 @@ export function SimulationControls() {
 
   const startHold = useCallback(
     (direction: Direction) => {
-      if (!connected || controllerEnabled) return;
+      if (!driveReady || controllerEnabled) return;
       if (activeRef.current === direction && timerRef.current !== null) return;
       clearTimer();
       activeRef.current = direction;
@@ -95,20 +103,17 @@ export function SimulationControls() {
         APP_CONFIG.simulation.cmdPublishIntervalMs,
       );
     },
-    [clearTimer, connected, controllerEnabled, publishActive],
+    [clearTimer, driveReady, controllerEnabled, publishActive],
   );
 
+  // Reset on entry to a fleet stop, but allow a fresh retreat gesture while it persists.
   useEffect(() => {
-    if (!connected) {
-      clearTimer();
-      activeRef.current = null;
-      setActive(null);
-    }
-  }, [clearTimer, connected]);
+    if (!driveReady || safetyStop) stopHold(true);
+  }, [driveReady, safetyStop, stopHold]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.repeat || isEditableTarget(event.target)) return;
+      if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || isEditableTarget(event.target)) return;
       const key = event.key.toLowerCase();
       let direction: Direction | null = null;
       if (key === 'w' || key === 'arrowup') direction = 'forward';
@@ -150,7 +155,7 @@ export function SimulationControls() {
     () => () => {
       clearTimer();
       try {
-        sendTwist(0, 0);
+        if (activeRef.current !== null) sendTwist(0, 0);
       } catch {
         return;
       }
@@ -197,7 +202,7 @@ export function SimulationControls() {
         <button
           type="button"
           className={`drive-button drive-button--forward ${active === 'forward' ? 'is-active' : ''}`.trim()}
-          disabled={!connected || controllerEnabled}
+          disabled={!driveReady || controllerEnabled}
           aria-label="Drive forward"
           {...bindHold('forward')}
         >
@@ -207,7 +212,7 @@ export function SimulationControls() {
         <button
           type="button"
           className={`drive-button drive-button--left ${active === 'left' ? 'is-active' : ''}`.trim()}
-          disabled={!connected || controllerEnabled}
+          disabled={!driveReady || controllerEnabled}
           aria-label="Turn left"
           {...bindHold('left')}
         >
@@ -227,7 +232,7 @@ export function SimulationControls() {
         <button
           type="button"
           className={`drive-button drive-button--right ${active === 'right' ? 'is-active' : ''}`.trim()}
-          disabled={!connected || controllerEnabled}
+          disabled={!driveReady || controllerEnabled}
           aria-label="Turn right"
           {...bindHold('right')}
         >
@@ -237,7 +242,7 @@ export function SimulationControls() {
         <button
           type="button"
           className={`drive-button drive-button--backward ${active === 'backward' ? 'is-active' : ''}`.trim()}
-          disabled={!connected || controllerEnabled}
+          disabled={!driveReady || controllerEnabled}
           aria-label="Drive backward"
           {...bindHold('backward')}
         >
@@ -297,9 +302,11 @@ export function SimulationControls() {
       </div>
 
 
+      {safetyStop && <p className="form-hint form-hint--warning">Fleet safety stop: release controls, then use a fresh gesture to retreat. Backend permits separation-increasing motion only, up to 0.2 m/s and 0.3 rad/s. Stop below 3.0 m; clears at 3.3 m.</p>}
+      {connected && !fleetLive && <p className="form-hint form-hint--warning">Fresh /fleet/state required for manual driving.</p>}
       {connected && snapshot.stale && (
         <p className="form-hint form-hint--warning">
-          ROS bridge is connected but no fresh /agv_web/ground_truth has arrived. Start the Python simulation node.
+          ROS bridge is connected but no fresh /{robotId}/agv_web/ground_truth has arrived. Start the Python simulation node.
         </p>
       )}
       {snapshot.commandError && (

@@ -13,6 +13,6 @@ export function ObstacleStatus() {
   return <div className={`scene-status ${warning ? 'scene-status--danger' : ''}`} role="status" aria-live="polite">
     <strong>{blocked ? 'OBSTACLE · Motion blocked' : close ? 'OBSTACLE · Nearby return' : live ? 'LiDAR scanning' : 'Obstacle sensing unavailable'}</strong>
     <div>{blocked ? `${collision.blockedObjectType ?? 'Object'}: ${collision.blockedObjectId ?? 'unidentified'}` : nearest !== null ? `Nearest measured surface: ${nearest.toFixed(2)} m` : 'Waiting for fresh sensor data'}</div>
-    <small>Cyan: rack route · Green: live Nav2 plan · Red points: returns within 2 m</small>
+    <small>Cyan: agv1 · Orange: agv2 · Dashed: live plan · Red points: returns within 2 m</small>
   </div>;
 }

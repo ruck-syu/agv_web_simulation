@@ -1,6 +1,6 @@
 import { useLidar } from '../../simulation/LidarProvider';
 import { useSimulation } from '../../simulation/SimulationProvider';
-import { useMapping } from '../../mapping/MappingProvider';
+import { useFleet } from '../../fleet/FleetProvider';
 import { useNavigation } from '../../navigation/NavigationProvider';
 import { Panel } from '../ui/Panel';
 import { StatusBadge } from '../ui/StatusBadge';
@@ -8,7 +8,7 @@ import { StatusBadge } from '../ui/StatusBadge';
 export function SystemHealthPanel() {
   const { snapshot } = useSimulation();
   const { live: lidarLive } = useLidar();
-  const { map, transform } = useMapping();
+  const { live, fleet } = useFleet();
   const { status } = useNavigation();
   const now = performance.now();
   const connected = snapshot.connectionStatus === 'connected';
@@ -18,12 +18,9 @@ export function SystemHealthPanel() {
     ['Physical robot telemetry', connected && !snapshot.stale],
     ['Wheel odometry', fresh(snapshot.wheelOdometry?.poseReceivedAt)],
     ['Roof LiDAR', lidarLive],
-    ['SLAM map', fresh(map?.receivedAt, 30000)],
-    ['Map localization TF', fresh(transform?.receivedAt)],
+    ['Fleet coordination', live && !fleet?.safety_stop],
     ['Collision diagnostics', fresh(snapshot.collision.receivedAt)],
-    ['Nav2 lifecycle', fresh(status?.receivedAt) && status?.serverReady === true],
-    ['Navigation sensor inputs', fresh(status?.receivedAt) && status?.sensorsReady === true],
-    ['Operator heartbeat', fresh(status?.receivedAt) && status?.operatorReady === true],
+    ['Fleet readiness', fresh(status?.receivedAt) && status?.ready === true],
   ];
   const count = checks.filter(([, healthy]) => healthy).length;
   return <Panel eyebrow="Diagnostics" title="System health"
@@ -33,6 +30,6 @@ export function SystemHealthPanel() {
       <dd className="field-row__value"><StatusBadge tone={healthy ? 'success' : 'warning'}>{healthy ? 'Ready' : 'Awaiting data'}</StatusBadge></dd>
     </div>)}</dl>
     <p className="panel__footnote">Readiness reflects the latest received data.
-      Manual drive remains available while mapping. Autonomous goals require active Nav2 nodes and fresh sensor streams.</p>
+      Autonomous goals require fresh world telemetry, sensors and a visible operator session.</p>
   </Panel>;
 }

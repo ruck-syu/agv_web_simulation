@@ -297,3 +297,9 @@ input[type='checkbox'] { accent-color: var(--accent); inline-size: 16px; block-s
 
 :root:has(> head > meta[name="color-scheme"][content="dark"]) .drive-button--stop { background: #a63232; color: white; }
 :root:has(> head > meta[name="color-scheme"][content="dark"]) .drive-button.is-active { color: #10202b; }
+
+.fleet-selector { display: flex; gap: 1rem; border: 1px solid var(--line); margin-block-end: .75rem; }
+.fleet-selector label { display: inline-flex; align-items: center; gap: .4rem; min-height: 48px; cursor: pointer; }
+.fleet-selector input { accent-color: currentColor; }
+.fleet-robot { margin-block: .75rem; }
+.fleet-robot p { margin-block: .3rem; }

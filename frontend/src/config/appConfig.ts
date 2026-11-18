@@ -10,10 +10,6 @@ function readEndpoint(value: unknown, fallback: string): string {
 }
 
 export const APP_CONFIG = {
-  name: 'AGV Warehouse Simulation',
-  shortName: 'AGV SIM',
-  company: 'Northridge Logistics Lab',
-  version: '1.0.0',
   rosbridgeUrl: readEndpoint(import.meta.env.VITE_ROSBRIDGE_URL, 'ws://localhost:9090'),
   ros: {
     autoConnect: true,
@@ -27,18 +23,6 @@ export const APP_CONFIG = {
       groundTruth: { name: '/agv_web/ground_truth', messageType: 'nav_msgs/msg/Odometry' } satisfies RosTopicConfig,
       odometryStatus: { name: '/agv_web/odometry_status', messageType: 'std_msgs/msg/String' } satisfies RosTopicConfig,
       scan: { name: '/scan', messageType: 'sensor_msgs/msg/LaserScan' } satisfies RosTopicConfig,
-      testFromRos: {
-        name: '/agv_web/test',
-        messageType: 'std_msgs/msg/String',
-      } satisfies RosTopicConfig,
-      testToRos: {
-        name: '/agv_web/from_web',
-        messageType: 'std_msgs/msg/String',
-      } satisfies RosTopicConfig,
-      testAck: {
-        name: '/agv_web/ack',
-        messageType: 'std_msgs/msg/String',
-      } satisfies RosTopicConfig,
       cmdVel: {
         name: '/agv_web/manual_cmd_vel',
         messageType: 'geometry_msgs/msg/Twist',
@@ -60,12 +44,9 @@ export const APP_CONFIG = {
         messageType: 'std_msgs/msg/String',
       } satisfies RosTopicConfig,
     },
-    testMessageDefault: 'Hello from the AGV web dashboard',
     maxLogEntries: 250,
   },
   simulation: {
-    statusLabel: 'ROS 2 live',
-    statusDetail: 'Authoritative Python differential-drive simulation',
     staleAfterMs: 1500,
     uiRefreshMs: 100,
     cmdPublishIntervalMs: 100,
@@ -73,13 +54,6 @@ export const APP_CONFIG = {
     defaultAngularSpeed: 0.6,
     maxLinearSpeed: 1.2,
     maxAngularSpeed: 1.2,
-    commandTimeoutMs: 500,
+    commandTimeoutMs: 250,
   },
-} as const;
-
-export const ROS_STATUS_LABELS = {
-  connected: 'Connected',
-  connecting: 'Connecting',
-  disconnected: 'Disconnected',
-  error: 'Connection error',
 } as const;

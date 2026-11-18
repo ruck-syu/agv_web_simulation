@@ -148,5 +148,3 @@ export const WAREHOUSE_LAYOUT = {
     },
   } satisfies Record<CameraView, CameraPreset>,
 } as const;
-
-export const RACK_BLOCK_CENTERS = BLOCK_CENTERS;

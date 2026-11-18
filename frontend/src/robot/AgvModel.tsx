@@ -1,6 +1,7 @@
+import { useRobotId, ROBOT_COLORS } from '../fleet/RobotContext';
 import { useMemo, useRef, type RefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { ContactShadows, RoundedBox } from '@react-three/drei';
+import { ContactShadows, RoundedBox, Html } from '@react-three/drei';
 import type * as THREE from 'three';
 import { WAREHOUSE_LAYOUT } from '../config/warehouseConfig';
 import { useSimulation } from '../simulation/SimulationProvider';
@@ -104,9 +105,12 @@ function LidarUnit() {
 }
 
 export function AgvModel() {
-  const { spawn, heading, wheelPositions } = WAREHOUSE_LAYOUT.agv;
-  const { getLatestTelemetry } = useSimulation();
-  const decalTexture = useMemo(getAgvDecalTexture, []);
+  const robotId = useRobotId();
+  const { wheelPositions } = WAREHOUSE_LAYOUT.agv;
+  const spawn: [number, number, number] = [robotId === 'agv1' ? -2.8 : 4.5, 0, -1.6];
+  const heading = 0;
+  const { getLatestTelemetry, snapshot } = useSimulation();
+  const decalTexture = useMemo(() => getAgvDecalTexture(robotId), [robotId]);
   const hazardTexture = useMemo(getHazardStripeTexture, []);
   const groupRef = useRef<THREE.Group>(null);
   const leftWheelRef = useRef<THREE.Group>(null);
@@ -158,6 +162,7 @@ export function AgvModel() {
 
   return (
     <group ref={groupRef} position={spawn} rotation={[0, heading, 0]}>
+      <Html position={[0, 1.5, 0]} center style={{color: ROBOT_COLORS[robotId], background: "#13232fee", padding: "3px 6px", pointerEvents: "none"}}>{robotId}{snapshot.stale ? " · preview/stale" : snapshot.collision.blocked ? ` · blocked: ${snapshot.collision.blockedObjectId}` : ""}</Html>
       <ContactShadows
         position={[0, 0.006, 0]}
         scale={3.4}
@@ -193,7 +198,7 @@ export function AgvModel() {
         castShadow
         receiveShadow
       >
-        <meshStandardMaterial color={COLORS.body} roughness={0.42} metalness={0.28} />
+        <meshStandardMaterial color={ROBOT_COLORS[robotId]} roughness={0.42} metalness={0.28} />
       </RoundedBox>
 
       <mesh position={[0, 0.35, 0]}>

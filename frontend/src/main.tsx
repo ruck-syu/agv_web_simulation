@@ -3,7 +3,8 @@ import App from './App';
 import { RackRouteProvider } from './navigation/RackRouteProvider';
 import { RosProvider } from './ros/RosProvider';
 import { NavigationProvider } from './navigation/NavigationProvider';
-import { MappingProvider } from './mapping/MappingProvider';
+import { FleetProvider } from './fleet/FleetProvider';
+import { RobotScope } from './fleet/RobotContext';
 import { LidarProvider } from './simulation/LidarProvider';
 import { SimulationProvider } from './simulation/SimulationProvider';
 import { ViewportProvider } from './viewport/ViewportProvider';
@@ -18,18 +19,15 @@ if (!root) {
   throw new Error('Application root element was not found.');
 }
 
+function RobotRuntime({ children }: { children: React.ReactNode }) {
+  return <SimulationProvider><NavigationProvider><LidarProvider><RackRouteProvider>{children}</RackRouteProvider></LidarProvider></NavigationProvider></SimulationProvider>;
+}
 createRoot(root).render(
-  <RosProvider>
-    <SimulationProvider>
-      <NavigationProvider>
-        <MappingProvider>
-          <LidarProvider>
-            <ViewportProvider>
-              <RackRouteProvider><App /></RackRouteProvider>
-            </ViewportProvider>
-          </LidarProvider>
-        </MappingProvider>
-      </NavigationProvider>
-    </SimulationProvider>
-  </RosProvider>,
+  <RosProvider><FleetProvider><ViewportProvider>
+    <RobotScope id="agv1"><RobotRuntime>
+      <RobotScope id="agv2"><RobotRuntime>
+        <RobotScope id={null}><App /></RobotScope>
+      </RobotRuntime></RobotScope>
+    </RobotRuntime></RobotScope>
+  </ViewportProvider></FleetProvider></RosProvider>,
 );

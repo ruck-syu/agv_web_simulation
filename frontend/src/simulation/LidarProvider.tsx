@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createRobotContext, useRobotId } from '../fleet/RobotContext';
+import { useEffect, useState, type ReactNode } from 'react';
 import { APP_CONFIG } from '../config/appConfig';
 import { useRosTopic } from '../hooks/useRosTopic';
 import { useRos } from '../ros/RosProvider';
@@ -15,17 +16,18 @@ interface LidarState {
   setRaysVisible: (visible: boolean) => void;
   setVisible: (visible: boolean) => void;
 }
-const Context = createContext<LidarState | null>(null);
+const Context = createRobotContext<LidarState>();
 export function LidarProvider({ children }: { children: ReactNode }) {
+  const robotId = useRobotId();
   const { state } = useRos();
   const { getLatestTelemetry } = useSimulation();
   const [reading, setReading] = useState<{ scan: LidarScan; pose: RobotPose | null } | null>(null);
   const [raysVisible, setRaysVisible] = useState(true);
   const [visible, setVisible] = useState(true);
   const [now, setNow] = useState(performance.now());
-  useRosTopic(APP_CONFIG.ros.topics.scan.name, APP_CONFIG.ros.topics.scan.messageType, (message) => {
+  useRosTopic(`/${robotId}${APP_CONFIG.ros.topics.scan.name}`, APP_CONFIG.ros.topics.scan.messageType, (message) => {
     if (state.status !== 'connected') return;
-    const scan = parseScan(message);
+    const scan = parseScan(message, `${robotId}/laser_frame`);
     if (!scan) return;
     const telemetry = getLatestTelemetry();
     const pose = telemetry && performance.now() - telemetry.poseReceivedAt < 300
@@ -44,8 +46,4 @@ export function LidarProvider({ children }: { children: ReactNode }) {
   return <Context.Provider value={{ scan: reading?.scan ?? null, pose: reading?.pose ?? null,
     live, visible, setVisible, raysVisible, setRaysVisible }}>{children}</Context.Provider>;
 }
-export function useLidar() {
-  const value = useContext(Context);
-  if (!value) throw new Error('useLidar requires LidarProvider');
-  return value;
-}
+export function useLidar() { return Context.useValue(); }

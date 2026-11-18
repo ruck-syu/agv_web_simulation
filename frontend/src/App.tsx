@@ -39,7 +39,7 @@ export default function App() {
           <span className="app-footer__dot" aria-hidden="true" />
           Warehouse 01 / Simulation workspace
         </span>
-        <span className="app-footer__stack">AGV-07 / Differential drive</span>
+        <span className="app-footer__stack">agv1 + agv2 / Coordinated fleet</span>
       </footer>
     </div>
   );

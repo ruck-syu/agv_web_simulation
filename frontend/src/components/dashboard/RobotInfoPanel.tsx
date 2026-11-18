@@ -1,3 +1,4 @@
+import { useRobotId } from '../../fleet/RobotContext';
 import { useSimulation } from '../../simulation/SimulationProvider';
 import { FieldRow } from '../ui/FieldRow';
 import { Icon } from '../ui/Icon';
@@ -5,6 +6,7 @@ import { Panel } from '../ui/Panel';
 import { StatusBadge } from '../ui/StatusBadge';
 
 export function RobotInfoPanel() {
+  const robotId = useRobotId();
   const { snapshot } = useSimulation();
   const telemetry = snapshot.telemetry;
   const live =
@@ -16,7 +18,7 @@ export function RobotInfoPanel() {
   return (
     <Panel
       eyebrow="Robot"
-      title="AGV-07"
+      title={robotId}
       className="robot-info-panel"
       actions={
         <StatusBadge tone={live ? 'success' : 'warning'} dot>
@@ -56,16 +58,16 @@ export function RobotInfoPanel() {
         </div>
 
         <div className="robot-card__facts">
-          <FieldRow label="Asset" value="AGV-07 warehouse tractor" />
+          <FieldRow label="Asset" value={`${robotId} warehouse tractor`} />
           <FieldRow label="Drive" value="Differential · 0.94 m wheelbase" />
           <FieldRow label="Footprint" value="1.55 × 1.06 m" />
-          <FieldRow label="Source of truth" value="/agv_web/ground_truth · Python simulation" />
+          <FieldRow label="Source of truth" value={`/${robotId}/agv_web/ground_truth · Python simulation`} />
           <FieldRow
             label="Live pose"
             value={
               telemetry
                 ? `X ${telemetry.pose.x.toFixed(2)} · Y ${telemetry.pose.y.toFixed(2)} · ${yawDegrees?.toFixed(1)}°`
-                : 'Waiting for /agv_web/ground_truth'
+                : `Waiting for /${robotId}/agv_web/ground_truth`
             }
             mono
           />
@@ -77,8 +79,8 @@ export function RobotInfoPanel() {
         <p>
           {live ? (
             <>
-              Pose and velocity are received from the Python backend on <strong>/agv_web/ground_truth</strong>.
-              Wheel angles and speeds arrive on <strong>/joint_states</strong>. The browser only
+              Pose and velocity are received from the Python backend on <strong>/{robotId}/agv_web/ground_truth</strong>.
+              Wheel angles and speeds arrive on <strong>/{robotId}/joint_states</strong>. The browser only
               interpolates between backend states for rendering.
             </>
           ) : (

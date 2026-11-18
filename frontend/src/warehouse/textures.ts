@@ -511,14 +511,14 @@ export function getHazardStripeTexture(): THREE.Texture {
   });
 }
 
-export function getAgvDecalTexture(): THREE.Texture {
-  return cached('agv-decal', () => {
+export function getAgvDecalTexture(robotId: string): THREE.Texture {
+  return cached(`agv-decal-${robotId}`, () => {
     const canvas = createCanvas(512, 128);
     const context = context2d(canvas);
     context.clearRect(0, 0, 512, 128);
     context.fillStyle = '#f5f1e8';
     context.font = '900 62px Arial, sans-serif';
-    context.fillText('AGV-07', 18, 66);
+    context.fillText(robotId.toUpperCase(), 18, 66);
     context.fillStyle = '#2a2e32';
     context.font = '700 19px Arial, sans-serif';
     context.fillText('AUTONOMOUS MOBILE ROBOT', 20, 98);

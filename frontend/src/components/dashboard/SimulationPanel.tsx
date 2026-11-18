@@ -1,3 +1,4 @@
+import { useRobotId } from '../../fleet/RobotContext';
 import { APP_CONFIG } from '../../config/appConfig';
 import { WAREHOUSE_LAYOUT } from '../../config/warehouseConfig';
 import { useSimulation } from '../../simulation/SimulationProvider';
@@ -39,6 +40,7 @@ function collisionPresentation(state: CollisionState): {
 }
 
 export function SimulationPanel() {
+  const robotId = useRobotId();
   const { snapshot } = useSimulation();
   const { telemetry, collision } = snapshot;
   const now = performance.now();
@@ -66,14 +68,14 @@ export function SimulationPanel() {
       className="simulation-panel"
       actions={
         <StatusBadge tone={live ? 'success' : 'warning'} dot>
-          {live ? 'Live telemetry' : 'Awaiting /agv_web/ground_truth'}
+          {live ? 'Live telemetry' : `Awaiting /${robotId}/agv_web/ground_truth`}
         </StatusBadge>
       }
     >
       <div className="telemetry-heading">
         <span>Current robot state</span>
         <span className="telemetry-heading__source">
-          /agv_web/ground_truth {formatAge(telemetry?.poseReceivedAt ?? 0, now)}
+          /{robotId}/agv_web/ground_truth {formatAge(telemetry?.poseReceivedAt ?? 0, now)}
         </span>
       </div>
 
@@ -134,7 +136,7 @@ export function SimulationPanel() {
           <strong>{presentation.label}</strong>
           <span>
             {state === 'unknown'
-              ? 'Waiting for /agv_web/collision_status from the Python backend.'
+              ? `Waiting for /${robotId}/agv_web/collision_status from the Python backend.`
               : objectId
                 ? `Object: ${objectId}${objectType ? ` (${objectType})` : ''}${
                     !collision.blocked && lastAge !== null
@@ -153,7 +155,7 @@ export function SimulationPanel() {
           value="Python differential-drive node"
           title="The browser only visualises backend ground truth"
         />
-        <FieldRow label="Wheel feedback" value="/joint_states" mono />
+        <FieldRow label="Wheel feedback" value={`/${robotId}/joint_states`} mono />
         <FieldRow
           label="Command link"
           value={
@@ -164,7 +166,7 @@ export function SimulationPanel() {
         />
         <FieldRow
           label="Command timeout"
-          value={`${(APP_CONFIG.simulation.commandTimeoutMs / 1000).toFixed(1)} s (backend)`}
+          value={`${(APP_CONFIG.simulation.commandTimeoutMs / 1000).toFixed(2)} s (backend)`}
           mono
         />
         <FieldRow

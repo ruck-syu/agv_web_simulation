@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('virtual standard controller drives only while armed and stops on release, focus loss, stale telemetry and unplug', async ({ page }) => {
-  let pauseTruth = false;
+  let pauseTruth = false, pauseFleet = false, safety = false;
   const commands: { linear: { x: number }; angular: { z: number } }[] = [];
   await page.route(/\/src\/warehouse\/WarehouseCanvas\.tsx(?:\?.*)?$/, (route) =>
     route.fulfill({ contentType: 'application/javascript', body: 'export function WarehouseCanvas() { return null; }' }));
@@ -13,11 +13,14 @@ test('virtual standard controller drives only while armed and stops on release, 
 
   });
   await page.routeWebSocket('ws://localhost:9090', (socket) => {
-    socket.onMessage((raw) => { const message = JSON.parse(String(raw)); if (message.op === 'publish' && message.topic === '/agv_web/manual_cmd_vel') commands.push(message.msg); });
-    const truth = { header: { frame_id: 'world' }, child_frame_id: 'ground_truth_base_link',
+    socket.onMessage((raw) => { const message = JSON.parse(String(raw)); if (message.op === 'publish' && message.topic === '/agv1/agv_web/manual_cmd_vel') commands.push(message.msg); });
+    const truth = { header: { frame_id: 'world' }, child_frame_id: 'agv1/ground_truth_base_link',
       pose: { pose: { position: { x: -2.8, y: 1.6 }, orientation: { x: 0, y: 0, z: 0, w: 1 } } },
       twist: { twist: { linear: { x: 0 }, angular: { z: 0 } } } };
-    const timer = setInterval(() => { if (!pauseTruth) socket.send(JSON.stringify({ op: 'publish', topic: '/agv_web/ground_truth', msg: truth })); }, 100);
+    const timer = setInterval(() => {
+      const robot = {state:'manual',detail:'Ready',mode:'manual',ready:true,busy:false,goal:null,pose:[0,0,0],waiting_on:[]};
+      if (!pauseFleet) socket.send(JSON.stringify({op:'publish',topic:'/fleet/state',msg:{data:JSON.stringify({schema_version:1,frame_id:'world',safety_stop:safety,separation_m:7,robots:{agv1:robot,agv2:robot},reserved_zones:{agv1:[],agv2:[]}})}}));
+      if (!pauseTruth) socket.send(JSON.stringify({ op: 'publish', topic: '/agv1/agv_web/ground_truth', msg: truth })); }, 100);
     socket.onClose(() => clearInterval(timer));
   });
   await page.goto('/');
@@ -41,6 +44,24 @@ test('virtual standard controller drives only while armed and stops on release, 
   await expect.poll(lastLinear).toBe(0);
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   await page.waitForTimeout(250);
+  expect(await lastLinear()).toBe(0);
+  await release();
+  await expect(page.getByText(/Virtual standard controller.*Ready — hold RB/)).toBeVisible();
+  await drive();
+  await expect.poll(lastLinear).toBeGreaterThan(0);
+  safety = true;
+  await expect.poll(lastLinear).toBe(0);
+  safety = false;
+  await page.waitForTimeout(350);
+  expect(await lastLinear()).toBe(0); // held deadman does not rearm
+  await release();
+  await expect(page.getByText(/Virtual standard controller.*Ready — hold RB/)).toBeVisible();
+  await drive();
+  await expect.poll(lastLinear).toBeGreaterThan(0);
+  pauseFleet = true; // truth continues: isolate fleet staleness
+  await expect.poll(lastLinear, {timeout:4000}).toBe(0);
+  pauseFleet = false;
+  await page.waitForTimeout(350);
   expect(await lastLinear()).toBe(0);
   await release();
   await expect(page.getByText(/Virtual standard controller.*Ready — hold RB/)).toBeVisible();

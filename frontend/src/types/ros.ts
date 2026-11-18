@@ -28,18 +28,3 @@ export interface RosBridgeClientOptions {
 export interface RosSubscriptionHandle {
   unsubscribe: () => void;
 }
-
-export interface RosStringMessage {
-  data: string;
-}
-
-export interface ReceivedRosMessage {
-  data: string;
-  receivedAt: string;
-  sequence: number;
-}
-
-export interface SendMessageResult {
-  ok: boolean;
-  error?: string;
-}
