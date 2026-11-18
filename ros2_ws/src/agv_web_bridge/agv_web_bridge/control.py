@@ -4,15 +4,27 @@ from dataclasses import dataclass
 from .motion_limits import MAX_LINEAR_SPEED, MAX_ANGULAR_SPEED
 
 
-def valid_goal(payload):
+FLEET_WORLD_BOUNDS = (-31, 31, -19, 19)
+
+
+def goal_coordinates(payload):
     if not isinstance(payload, dict) or payload.get('action') != 'goal':
         return None
     values = [payload.get(key) for key in ('x', 'y', 'yaw')]
-    if any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) for v in values):
+    if any(isinstance(v, bool) or not isinstance(v, (int, float)) for v in values):
         return None
-    if abs(values[0]) > 100 or abs(values[1]) > 100:
+    try:
+        return tuple(float(v) for v in values) if all(math.isfinite(v) for v in values) else None
+    except OverflowError:
         return None
-    return tuple(float(v) for v in values)
+
+
+def valid_goal(payload):
+    """Validate the input range of the legacy navigation bridge."""
+    values = goal_coordinates(payload)
+    if values is None or abs(values[0]) > 100 or abs(values[1]) > 100:
+        return None
+    return values
 
 
 @dataclass

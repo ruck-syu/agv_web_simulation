@@ -5,20 +5,26 @@ from __future__ import annotations
 import json
 import math
 import os
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
 import rclpy
 from ament_index_python.packages import get_package_share_directory
-from geometry_msgs.msg import Quaternion, TransformStamped, Twist
+from geometry_msgs.msg import Quaternion, TransformStamped, Twist, TwistStamped
 from nav_msgs.msg import Odometry
+from rclpy.clock import Clock, ClockType
 from rclpy.node import Node
 from sensor_msgs.msg import JointState, LaserScan
 from std_msgs.msg import String
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
 
-from .motion_limits import MAX_LINEAR_SPEED, MAX_ANGULAR_SPEED, MAX_WHEEL_ANGULAR_SPEED
+from .motion_limits import (
+    FLEET_COMMAND_LIFESPAN, FLEET_VELOCITY_TOPIC,
+    MAX_LINEAR_SPEED, MAX_ANGULAR_SPEED, MAX_WHEEL_ANGULAR_SPEED,
+    SIM_LINEAR_ACCELERATION, SIM_ANGULAR_ACCELERATION,
+)
 from .odometry import WheelOdometry, integrate_pose, ros_covariance
 from .lidar import LIDAR_FRAME, LIDAR_HEIGHT, scan_ranges
 
@@ -331,7 +337,7 @@ def contact_point_with_obstacle(
 class SimulationNode(Node):
     """Fixed-step differential drive, odometry, TF and collision publisher."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, *, fleet_commands: bool = False, **kwargs) -> None:
         super().__init__('agv_web_simulation', **kwargs)
         self.declare_parameter('frame_prefix', '')
         self.frame_prefix = str(self.get_parameter('frame_prefix').value)
@@ -356,8 +362,8 @@ class SimulationNode(Node):
         self.declare_parameter('max_linear_velocity', MAX_LINEAR_SPEED)
         self.declare_parameter('max_angular_velocity', MAX_ANGULAR_SPEED)
         self.declare_parameter('max_wheel_angular_velocity', MAX_WHEEL_ANGULAR_SPEED)
-        self.declare_parameter('max_linear_acceleration', 1.2)
-        self.declare_parameter('max_angular_acceleration', 2.5)
+        self.declare_parameter('max_linear_acceleration', SIM_LINEAR_ACCELERATION)
+        self.declare_parameter('max_angular_acceleration', SIM_ANGULAR_ACCELERATION)
         self.declare_parameter('cmd_vel_timeout', 0.5)
         self.declare_parameter('simulation_rate', 50.0)
         self.declare_parameter('odometry_rate', 25.0)
@@ -430,7 +436,10 @@ class SimulationNode(Node):
                 f'{initial_collision.id} ({initial_collision.type}); refusing to start.'
             )
 
-        self.create_subscription(Twist, CMD_VEL_TOPIC, self._handle_cmd_vel, 10)
+        if fleet_commands:
+            self.create_subscription(TwistStamped, FLEET_VELOCITY_TOPIC, self._handle_fleet_velocity, 1)
+        else:
+            self.create_subscription(Twist, CMD_VEL_TOPIC, self._handle_cmd_vel, 1)
         self.odom_publisher = self.create_publisher(Odometry, ODOM_TOPIC, 10)
         self.truth_publisher = self.create_publisher(Odometry, TRUTH_TOPIC, 10)
         self.odometry_status_publisher = self.create_publisher(String, ODOMETRY_STATUS_TOPIC, 10)
@@ -458,7 +467,7 @@ class SimulationNode(Node):
         obstacle_transform.transform.rotation.w = 1.0
         self.static_tf_broadcaster.sendTransform([sensor_transform, obstacle_transform])
         self.create_timer(0.1, self._publish_scan)
-        self.create_timer(self.dt, self._step)
+        self.create_timer(self.dt, self._step, clock=Clock(clock_type=ClockType.STEADY_TIME))
         self.create_timer(1.0, self._publish_collision_geometry)
 
         self.get_logger().info(
@@ -471,7 +480,7 @@ class SimulationNode(Node):
             f'height={self.robot_height:.2f}m.'
         )
         self.get_logger().info(
-            f'Subscribing {CMD_VEL_TOPIC}; publishing {ODOM_TOPIC}, '
+            f'Subscribing {FLEET_VELOCITY_TOPIC if fleet_commands else CMD_VEL_TOPIC}; publishing {ODOM_TOPIC}, '
             f'{JOINT_STATE_TOPIC}, {COLLISION_TOPIC}, '
             f'{COLLISION_GEOMETRY_TOPIC}, /scan, {TRUTH_TOPIC}, '
             f'{ODOMETRY_STATUS_TOPIC} and TF {(self.frame_prefix + ODOM_FRAME)}->{(self.frame_prefix + BASE_FRAME)}.'
@@ -691,6 +700,12 @@ class SimulationNode(Node):
             self.robot_height,
         )
 
+    def _handle_fleet_velocity(self, message: TwistStamped) -> None:
+        stamp = message.header.stamp.sec * 10**9 + message.header.stamp.nanosec
+        age = time.time_ns() - stamp
+        if 0 <= age <= FLEET_COMMAND_LIFESPAN * 10**9:
+            self._handle_cmd_vel(message.twist)
+
     def _handle_cmd_vel(self, message: Twist) -> None:
         linear = float(message.linear.x)
         angular = float(message.angular.z)
@@ -710,19 +725,21 @@ class SimulationNode(Node):
                 self.blocked_obstacle = None
         self.target_v = new_v
         self.target_w = new_w
-        self.last_cmd_time = self._now_seconds()
+        self.last_cmd_time = time.monotonic()
         self.cmd_timed_out = False
 
     def _update_command_timeout(self, now: float) -> None:
         if self.last_cmd_time is None:
             self.cmd_timed_out = False
             return
-        timed_out = (now - self.last_cmd_time) > self.cmd_vel_timeout
+        timed_out = now >= self.last_cmd_time + self.cmd_vel_timeout
         if timed_out and not self.cmd_timed_out:
             self.get_logger().warning(
-                f'No /cmd_vel received for {self.cmd_vel_timeout:.2f}s; stopping the AGV.'
+                f'No fresh velocity command for {self.cmd_vel_timeout:.2f}s. Stopping the AGV.'
             )
         self.cmd_timed_out = timed_out
+        if timed_out:
+            self.target_v = self.target_w = 0.0
 
     def _commit_motion(
         self,
@@ -759,7 +776,7 @@ class SimulationNode(Node):
 
     def _step(self) -> None:
         now = self._now_seconds()
-        self._update_command_timeout(now)
+        self._update_command_timeout(time.monotonic())
         if self.cmd_timed_out and self.blocked_now:
             self.blocked_now = False
             self.blocked_command = None
@@ -948,6 +965,17 @@ class SimulationNode(Node):
         transform.transform.translation.z = 0.0
         transform.transform.rotation = quaternion
         self.tf_broadcaster.sendTransform(transform)
+        if self.frame_prefix:
+            # Simulation localization: world -> wheel odom corrects encoder drift.
+            alignment = TransformStamped()
+            alignment.header.stamp = stamp
+            alignment.header.frame_id = WORLD_FRAME
+            alignment.child_frame_id = self.frame_prefix + ODOM_FRAME
+            delta = normalize_angle(self.yaw - estimate.yaw)
+            alignment.transform.translation.x = self.x - (math.cos(delta)*estimate.x - math.sin(delta)*estimate.y)
+            alignment.transform.translation.y = self.y - (math.sin(delta)*estimate.x + math.cos(delta)*estimate.y)
+            alignment.transform.rotation = quaternion_from_yaw(delta)
+            self.tf_broadcaster.sendTransform(alignment)
 
     def _motion_state(self) -> str:
         if self.blocked_now:

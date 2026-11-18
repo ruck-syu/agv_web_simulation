@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from agv_web_bridge.fleet import GridPlanner, Reservations, route_zones, follow
+from agv_web_bridge.fleet import GridPlanner, Reservations, route_zones, track, request_expired
 
 
 class FleetTests(unittest.TestCase):
@@ -52,16 +52,23 @@ class FleetTests(unittest.TestCase):
         self.assertTrue(all(planner.cell(p) not in forbidden for p in path))
 
     def test_follower_turns_before_advancing_and_aligns_yaw(self):
-        self.assertEqual(follow((0,0,math.pi),(1,0))[0],0)
-        self.assertGreater(follow((0,0,0),(1,0))[0],0)
-        v,w=follow((1,0,0),(1,0),math.pi/2)
+        planner=GridPlanner([])
+        self.assertEqual(track(planner,(0,0,math.pi),[(1,0)])[0],0)
+        self.assertGreater(track(planner,(0,0,0),[(1,0)])[0],0)
+        v,w=track(planner,(1,0,0),[(1,0)],final_yaw=math.pi/2)
         self.assertEqual(v,0); self.assertGreater(w,0)
 
     def test_two_controllers_reach_disjoint_goals(self):
+        planner=GridPlanner([])
         poses=[(0.,0.,0.),(0.,5.,0.)]
         for _ in range(400):
             for i in range(2):
-                v,w=follow(poses[i],(3.,5.*i),0.)
+                v,w=track(planner,poses[i],[(3.,5.*i)],final_yaw=0.)
                 x,y,yaw=poses[i]; poses[i]=(x+v*math.cos(yaw)*.05,y+v*math.sin(yaw)*.05,yaw+w*.05)
         for i in range(2):
             self.assertLess(math.dist(poses[i][:2],(3.,5.*i)),.1)
+
+    def test_wait_and_travel_deadlines(self):
+        self.assertTrue(request_expired(31,0,0,True))
+        self.assertFalse(request_expired(31,0,0,False))
+        self.assertTrue(request_expired(181,0,0,False))

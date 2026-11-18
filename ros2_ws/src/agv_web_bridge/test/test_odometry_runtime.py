@@ -66,7 +66,7 @@ class OdometryRuntimeTests(unittest.TestCase):
                 self.assertEqual(frozen, (simulation.x, simulation.y, simulation.left_wheel_angle,
                     simulation.right_wheel_angle, simulation.wheel_odometry.x, simulation.wheel_odometry.y))
             # Exercise timeout path and deceleration, rather than injecting a stop command.
-            simulation.last_cmd_time = simulation._now_seconds() - 1.0
+            simulation.last_cmd_time = time.monotonic() - 1.0
             for _ in range(100):
                 simulation._step()
             odoms.clear(); truths.clear(); transforms.clear(); statuses.clear()

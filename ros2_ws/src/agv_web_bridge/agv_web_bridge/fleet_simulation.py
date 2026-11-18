@@ -1,10 +1,12 @@
 """Two robots in one single-threaded authoritative physics process."""
+import signal
 import rclpy
 from rclpy.executors import SingleThreadedExecutor
 from rclpy.parameter import Parameter
+from .motion_limits import FLEET_COMMAND_TIMEOUT
 from .simulation_node import SimulationNode, Obstacle
 
-TOPICS = ["/cmd_vel", "/odom", "/joint_states", "/scan", "/scan_obstacles",
+TOPICS = ["/odom", "/joint_states", "/scan", "/scan_obstacles",
           "/agv_web/ground_truth", "/agv_web/odometry_status",
           "/agv_web/collision_status", "/agv_web/collision_geometry"]
 
@@ -12,10 +14,11 @@ TOPICS = ["/cmd_vel", "/odom", "/joint_states", "/scan", "/scan_obstacles",
 def create_robots():
     robots=[]
     for robot_id, x, y in (("agv1",-2.8,1.6),("agv2",4.5,1.6)):
-        node=SimulationNode(namespace=robot_id,
+        node=SimulationNode(namespace=robot_id, fleet_commands=True,
             cli_args=["--ros-args"]+[arg for topic in TOPICS for arg in ("-r", f"{topic}:=/{robot_id}{topic}")],
             parameter_overrides=[Parameter("frame_prefix",value=robot_id+"/"),
-                                 Parameter("initial_x",value=x),Parameter("initial_y",value=y)])
+                                 Parameter("initial_x",value=x),Parameter("initial_y",value=y),
+                                 Parameter("cmd_vel_timeout",value=FLEET_COMMAND_TIMEOUT)])
         robots.append(node)
     for node in robots:
         node.dynamic_obstacles=lambda node=node: [Obstacle(
@@ -37,7 +40,8 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
         executor.shutdown()
         for node in nodes:
             node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()

@@ -1,6 +1,7 @@
 """Verify higher speeds reach the wheels and retain collision/timeout stopping."""
 import math
 import sys
+import time
 import unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -39,7 +40,7 @@ class SpeedRuntimeTests(unittest.TestCase):
                 self.assertGreater(math.hypot(node.x - x, node.y - y), 1.5)
                 self.assertLessEqual(abs(node.left_wheel_velocity), node.max_wheel_angular_velocity)
                 self.assertLessEqual(abs(node.right_wheel_velocity), node.max_wheel_angular_velocity)
-                node.last_cmd_time = node._now_seconds() - 1.0
+                node.last_cmd_time = time.monotonic() - 1.0
                 for _ in range(100): node._step()
                 self.assertTrue(node.cmd_timed_out)
                 self.assertEqual((node.v, node.w), (0.0, 0.0))
