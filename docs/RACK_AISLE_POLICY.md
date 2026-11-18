@@ -1,5 +1,7 @@
 # Rack footprints are not traffic lanes
 
+> Evidence paths shown as `test_logs/...` are generated locally by the acceptance runs. `test_logs/` is gitignored, so those files are not tracked in Git.
+
 ## Cause and correction
 
 The original collision model contained uprights, footplates, end guards and elevated shelving, but no solid reserved floor footprint. The 0.96 m AGV fit below the first shelf (approximately 1.185 m underside). Both planar scan planes could see through bay openings, so SLAM/Nav2 treated them as navigable. Earlier arrival/collision verification did not test aisle-only travel; its success was insufficient for the intended warehouse behavior.
@@ -29,10 +31,10 @@ The final native ROS/Nav2 acceptance sent a B2 approach goal, confirmed arrival,
 | Rack intrusion or collision blocking | None |
 | Result | PASS |
 
-Evidence: [backend test output](../test_logs/rack_aisles/backend-tests.log), [final live result and trajectory](../test_logs/rack_aisles/live-result.json), [mapping drive](../test_logs/rack_aisles/mapping-drive.json). Reproduce against a dedicated local simulation with `docker compose exec -T simulation bash -c 'source /opt/ros/humble/setup.bash && source /opt/agv_ws/install/setup.bash && python3 /workspace/test_logs/rack_aisles/verify_live.py'`. The acceptance client supplies its own operator heartbeat and navigation commands; this is a native planner/physics check, not a browser interaction test.
+Evidence: `test_logs/rack_aisles/backend-tests.log`, `test_logs/rack_aisles/live-result.json`, `test_logs/rack_aisles/mapping-drive.json`. Reproduce against a dedicated local simulation with `docker compose exec -T simulation bash -c 'source /opt/ros/humble/setup.bash && source /opt/agv_ws/install/setup.bash && python3 /workspace/test_logs/rack_aisles/verify_live.py'`. The acceptance client supplies its own operator heartbeat and navigation commands; this is a native planner/physics check, not a browser interaction test.
 
 ## Coverage and retained evidence
 
-The first traversal after rebuilding the map found no rack intrusion across 5,484 planned footprints, but its strict physical arrival check failed by 0.412 m while SLAM closed the initial mapping loop. That failed result is retained in [first-loop-result.json](../test_logs/rack_aisles/first-loop-result.json). The final run passed the unchanged 0.3 m arrival bound on the updated live map; the bound was not loosened.
+The first traversal after rebuilding the map found no rack intrusion across 5,484 planned footprints, but its strict physical arrival check failed by 0.412 m while SLAM closed the initial mapping loop. That failed result is retained in `test_logs/rack_aisles/first-loop-result.json`. The final run passed the unchanged 0.3 m arrival bound on the updated live map; the bound was not loosened.
 
 This verifies B2 → D1 and the reserved-volume behavior of every rack bay. It does not establish route coverage through unmapped aisles. The ROS simulation and local frontend remain running; the acceptance client stopped the robot and exited.

@@ -24,10 +24,11 @@ Commands below use ordinary `docker`, `npm`, and shell commands so this guide do
 | React + TypeScript + Vite | Host, `frontend/` | Control desk, live warehouse rendering, gamepad and navigation UI |
 | Three.js / React Three Fiber | Browser with WebGL | Industrial warehouse scene and robot visualization |
 | Authoritative simulator | ROS 2 Humble, Python | Differential drive, accepted wheel motion, collisions, sensor simulation |
-| Navigation bridge | ROS 2 Humble, Python | Command ownership, Nav2 action client, stop/freshness behavior |
-| SLAM Toolbox | ROS container/native Humble | Occupancy map and `map → odom` |
-| Nav2 | ROS container/native Humble | Planning, local control, obstacle avoidance and goal lifecycle |
+| Fleet coordinator | ROS 2 Humble, Python | Per-robot goals, rolling traffic reservations and safety separation |
+| World-geometry planner | ROS 2 Humble, Python | Geometry-based rack routes from simulated ground-truth localization; no SLAM map or Nav2 action server |
 | rosbridge | ROS container/native Humble | Browser WebSocket transport |
+
+The legacy single-robot SLAM Toolbox and Nav2 nodes remain in the package for backend workflows only; the current dashboard cannot drive them. See [MULTI_AGV.md](docs/MULTI_AGV.md) for the fleet contract.
 
 The frontend is **not** a service in the supplied Compose file. Running `docker compose up` alone does not start the website.
 
@@ -53,11 +54,11 @@ frontend/public/
 frontend/tests/
 frontend/e2e/
 ros2_ws/src/
-test_logs/*.py
+scripts/
 docs/
 ```
 
-`test_logs/` contains executable acceptance clients as well as generated reports. Keep its Python files. Keep saved `.pgm`/`.yaml` maps together if the user wants to retain them.
+Runnable acceptance clients live in `scripts/` (`fleet_concurrency_smoke.py`, `fleet_pair_live.py`, `summarize_fleet_smoke.py`, `export_fleet_grid.py`). `test_logs/` is generated, gitignored evidence output: its files are produced locally by those runs and are not required to set up a new machine. Keep saved `.pgm`/`.yaml` maps together if the user wants to retain them for legacy backend workflows.
 
 Do not transfer or rely on generated directories:
 
@@ -130,7 +131,7 @@ docker compose ps
 docker compose logs --tail 100 simulation
 ```
 
-The image starts from `ros:humble-ros-base`, installs rosbridge, SLAM Toolbox and Nav2, copies `ros2_ws/src`, and runs `colcon build`. It launches `agv_navigation.launch.py`, which includes the simulator, navigation bridge, rosbridge, SLAM and Nav2 lifecycle-managed nodes.
+The image starts from `ros:humble-ros-base`, installs rosbridge, copies `ros2_ws/src`, and runs `colcon build`. It launches `agv_fleet.launch.py`, which starts one rosbridge, the two-robot authoritative simulator (`fleet_simulation`) and the fleet coordinator (`fleet_node`). This is the only mode the current dashboard drives.
 
 The first build needs network access to Docker Hub, Ubuntu and ROS package repositories. Docker chooses a compatible image architecture; do not force `linux/amd64` on Apple Silicon without a demonstrated dependency need.
 
@@ -173,11 +174,11 @@ Vite environment values are build/start-time values. Restart dev after changing 
 
 ### Confirm actual readiness
 
-1. Header shows the bridge connection and fresh robot telemetry.
-2. Drive controls and the live warehouse render.
-3. LiDAR updates, `/odom` estimates arrive, and the SLAM occupancy map appears.
+1. Header shows the bridge connection and fresh **Fleet coordination** status for both robots.
+2. Drive controls and the live warehouse render show `agv1` (cyan) and `agv2` (orange).
+3. Namespaced `/agvN/scan` and `/agvN/odom` streams update, and `/agvN/agv_web/ground_truth` supplies world truth. There is no SLAM occupancy map in fleet mode.
 4. Open **Diagnostics & connection** for detailed System health and connection information. Diagnostics are intentionally collapsed on the redesigned UI.
-5. Navigation becomes available only when Nav2 nodes are active and map/localization, sensor data and operator heartbeat are fresh.
+5. Navigation becomes available only when `/fleet/state` is fresh, per-robot ground truth and sensor data are fresh, and the operator heartbeat is current.
 
 Allow the stack time to initialize. Software WebGL may take longer to warm up in headless tests. Do not infer readiness from container status alone.
 
@@ -214,7 +215,7 @@ cd ros2_ws
 colcon build --packages-select agv_web_bridge --symlink-install
 source install/setup.bash
 export ROS_DOMAIN_ID=72
-ros2 launch agv_web_bridge agv_navigation.launch.py
+ros2 launch agv_web_bridge agv_fleet.launch.py
 ```
 
 Start the frontend in another terminal as in section 5. In **every** additional ROS terminal, source Humble and this workspace's `install/setup.bash` and set `ROS_DOMAIN_ID=72` before inspecting topics.
@@ -225,13 +226,14 @@ Do not run native ROS and the Compose simulator simultaneously on the same bridg
 
 ### Launch choices
 
-| Launch file | Starts |
-| --- | --- |
-| `agv_navigation.launch.py` | Complete simulation + bridge + SLAM + Nav2 |
-| `agv_mapping.launch.py` | Simulation + bridge + SLAM, without Nav2 |
-| `agv_simulation.launch.py` | Simulator + command/action bridge + rosbridge, without SLAM/Nav2 servers |
+| Launch file | Status | Starts |
+| --- | --- | --- |
+| `agv_fleet.launch.py` | **Current** | Two robots (`fleet_simulation`), fleet coordinator (`fleet_node`) and rosbridge; used by Docker Compose |
+| `agv_navigation.launch.py` | Legacy single-robot | Simulation + bridge + SLAM + Nav2; the current dashboard cannot drive it |
+| `agv_mapping.launch.py` | Legacy single-robot | Simulation + bridge + SLAM, without Nav2 |
+| `agv_simulation.launch.py` | Legacy single-robot | Simulator + command/action bridge + rosbridge, without SLAM/Nav2 servers; reused internally by `fleet_simulation` |
 
-All nodes use **wall-clock time** (`use_sim_time=false`); this simulator does not require a `/clock` publisher. Mapping/navigation launches include the simulation launch. Never start another simulator to supplement them.
+All nodes use **wall-clock time** (`use_sim_time=false`); this simulator does not require a `/clock` publisher. Legacy mapping/navigation launches include the simulation launch. Never start another simulator to supplement them.
 
 ## 7. Validation sequence
 
@@ -266,17 +268,15 @@ docker run --rm -e ROS_DOMAIN_ID=71 --mount "type=bind,source=$($PWD.Path),targe
 
 The current full backend suite has 42 tests. ROS tests skipped because `rclpy` is absent on a host are not acceptance passes; running them in the image supplies real ROS. Domain 71 isolates the test driver from the operator stack on domain 72.
 
-### C. Motion/collision acceptance
+### C. Fleet motion/collision acceptance
 
-Bash/zsh:
+The former `test_logs/phase3_4_test_runner.py` acceptance client is no longer tracked. The current harness is `scripts/fleet_concurrency_smoke.py`; run it against the **live Compose stack** (domain 72), separately from the isolated unit-test domain:
 
 ```bash
-docker run --rm -e ROS_DOMAIN_ID=73 -v "$PWD:/workspace" agv-warehouse:humble python3 test_logs/phase3_4_test_runner.py
+docker compose exec -T simulation bash -c 'source /opt/ros/humble/setup.bash; source /opt/agv_ws/install/setup.bash; python3 /workspace/scripts/fleet_concurrency_smoke.py'
 ```
 
-PowerShell: use the same `--mount "type=bind,source=$($PWD.Path),target=/workspace"` form from B, domain 73, and the `python3 test_logs/phase3_4_test_runner.py` command.
-
-This runs 18 movement, collision, timeout, aisle and under-rack scenarios. Results are written under `test_logs/`. Tests start their own simulation; do not also start a navigation bridge that publishes zeros in the test domain.
+It checks paired routes, concurrent progress, safety separation, collision-free motion and the separation-stop latch. Results are written into the gitignored `test_logs/` directory. See [FLEET_ROLLING_VALIDATION.md](docs/FLEET_ROLLING_VALIDATION.md) for metric definitions and interpretation. Do not run this while another operator drives the same stack.
 
 ### D. Inspect the live stack
 
@@ -284,8 +284,9 @@ Each container exec starts a new shell; source the environments explicitly:
 
 ```bash
 docker compose exec -T simulation bash -c 'source /opt/ros/humble/setup.bash && source /opt/agv_ws/install/setup.bash && ros2 topic list'
-docker compose exec -T simulation bash -c 'source /opt/ros/humble/setup.bash && ros2 topic echo /agv_web/navigation_status --once'
-docker compose exec -T simulation bash -c 'source /opt/ros/humble/setup.bash && ros2 topic hz /scan'
+docker compose exec -T simulation bash -c 'source /opt/ros/humble/setup.bash && ros2 topic echo /fleet/state --once'
+docker compose exec -T simulation bash -c 'source /opt/ros/humble/setup.bash && ros2 topic echo /agv1/agv_web/navigation_status --once'
+docker compose exec -T simulation bash -c 'source /opt/ros/humble/setup.bash && ros2 topic hz /agv1/scan'
 ```
 
 `ros2 topic hz` runs until interrupted. Typical configured rates are 10 Hz per LiDAR and 25 Hz odometry, subject to host scheduling. A stale/missing stream must be investigated rather than replaced with generated UI data.
@@ -300,37 +301,43 @@ npm run test:e2e
 
 The configuration starts/reuses Vite on port 3000. An already-running Vite instance must use the **local** ROS endpoint expected by the tests. Do not point acceptance at a public preview build or unrelated dev server. Existing tests are sequential (`workers: 1`) and allow software WebGL initialization time.
 
-There are currently two browser cases: virtual-controller safety checks using a mocked connection, and a real ROS dashboard case that submits/cancels a Nav2 goal and checks reconnection. Keep the actual stack available for the latter. If the browser channel is unavailable, install the configured browser or explicitly adapt the configuration and report the change; do not silently report a different browser as Chrome.
+The browser suite covers controller, rack-route and fleet behavior. The live fleet case requires `/fleet/state` from `agv_fleet.launch.py` and checks both robots plus connection recovery; it skips when that topic is absent unless `AGV_FLEET_E2E=1`. Keep the actual stack available for the live cases. If the browser channel is unavailable, install the configured browser or explicitly adapt the configuration and report the change; do not silently report a different browser as Chrome.
 
-### F. Real SLAM/Nav2 acceptance client
+### F. Paired live-route acceptance
 
-Run this separately from browser tests and operator use; it commands the live robot:
+The former `test_logs/end_to_end.py` SLAM/Nav2 client is no longer tracked. For a live dashboard **Start both** run, stage the two robots and record the trip with `scripts/fleet_pair_live.py`:
 
 ```bash
-docker compose exec -T simulation bash -c 'source /opt/ros/humble/setup.bash && source /opt/agv_ws/install/setup.bash && python3 /workspace/test_logs/end_to_end.py'
+docker compose exec -T simulation bash -c 'source /opt/ros/humble/setup.bash; source /opt/agv_ws/install/setup.bash; python3 /workspace/scripts/fleet_pair_live.py head_on'
 ```
 
-It checks live scans/map/TF, navigation arrival, cancellation and heartbeat stopping. Its report path is hard-coded to `/workspace/test_logs/end_to_end_results.json`, which is supplied by the Compose mount. For native Ubuntu, use the individual checks/browser suite or deliberately adapt that output path; do not assume `/workspace` exists on the host. The motion runner and backend suite can run natively in a sourced Humble environment with isolated `ROS_DOMAIN_ID` values.
+Wait for its readiness message, then select the routes and click **Start both** in the dashboard. Reports are written into the gitignored `test_logs/` directory. See [FLEET_ROLLING_VALIDATION.md](docs/FLEET_ROLLING_VALIDATION.md) for the full procedure and the meaning of `--skip-stage` modes.
 
-Do not run browser navigation, the live acceptance client and another operator's drive session concurrently. They share command ownership and can cancel one another.
+Do not run browser navigation, the live acceptance harness and another operator's drive session concurrently. They share command ownership and can cancel one another.
 
 ## 8. Interfaces the receiving model must preserve
 
+All robot topics are namespaced per robot (`N` is `1` or `2`):
+
 | Interface | Meaning |
 | --- | --- |
-| `/agv_web/manual_cmd_vel` | Browser keyboard, buttons and controller input |
-| `/agv_web/nav_cmd_vel` | Nav2 controller/behavior output |
-| `/cmd_vel` | Selected command from the bridge; consumed by the simulator |
-| `/odom` | Wheel-integrated pose estimate, header `odom`, child `base_link` |
-| `/agv_web/ground_truth` | Physical world pose for the warehouse model/camera |
-| `/scan` | Roof LiDAR used by SLAM and costmaps |
-| `/scan_obstacles` | Floor-level obstacle scan used by navigation |
-| `/map` | Real SLAM occupancy grid |
-| `/tf`, `/tf_static` | `map → odom → base_link → laser_frame` plus the floor sensor frame |
-| `/agv_web/navigation_command` | JSON goal/cancel/stop requests inside a String message |
-| `/agv_web/navigation_status` | Action, lifecycle, localization, sensor and operator readiness |
+| `/agvN/agv_web/manual_cmd_vel` | Browser keyboard, buttons and controller input for that robot |
+| `/agvN/agv_web/fleet_velocity` | Fleet coordinator velocity output consumed by that robot's simulator |
+| `/agvN/cmd_vel` | Diagnostic velocity topic published by the coordinator |
+| `/agvN/odom` | Wheel-integrated pose estimate, frame `agvN/odom`, child `agvN/base_link` |
+| `/agvN/agv_web/ground_truth` | Simulated ground-truth world pose used for planning and the warehouse model |
+| `/agvN/scan` | Roof LiDAR scan plane |
+| `/agvN/scan_obstacles` | Floor-level obstacle scan plane |
+| `/agvN/agv_web/odometry_status`, `/agvN/agv_web/collision_status`, `/agvN/agv_web/collision_geometry` | Odometry freshness and collision diagnostics |
+| `/agvN/joint_states` | Simulated wheel joint state |
+| `/agvN/agv_web/navigation_command` | JSON goal/cancel/stop requests inside a String message |
+| `/agvN/agv_web/navigation_status` | Per-robot fleet goal, reservation and localization readiness |
+| `/agvN/agv_web/operator_heartbeat` | Browser heartbeat while its tab is visible |
+| `/agvN/plan` | Live geometry-planned path for that robot |
+| `/fleet/state` | Both robots' poses, jobs, reservations and safety status |
+| `/fleet/start_pair`, `/fleet/start_pair_result` | Paired rack-route submission and acknowledgement |
 
-Only the bridge should own `/cmd_vel` during normal operation. Do not add another velocity publisher, duplicate TF parent, static identity `map → odom` or ground-truth shortcut to make Nav2 appear healthy.
+Only the fleet coordinator should publish velocity commands during normal operation. Do not add another velocity publisher or feed ground truth into planning through an alternate topic; the planner uses simulated world truth by design.
 
 Keep the website tab visible for autonomous navigation. Operator heartbeat, sensor/localization freshness, manual priority, backend timeout and collision stopping are part of the design. Gamepad mode additionally requires focus, standard mapping, neutral/released arming, and RB/R1 hold-to-drive.
 
@@ -383,8 +390,9 @@ A normal local build must not retain a stale `VITE_ROSBRIDGE_URL`. Remove the en
 | TypeScript imports fail under `npm test` | Check Node, not just Vite. Use the documented Node 26 baseline. |
 | Old footprint/limits/code despite editing source | Rebuild/recreate the Docker image, or rebuild and source the correct native install. |
 | UI connected, no topics in an external ROS shell | Check ROS domain 72 and both sourced setup files; container exec inherits domain but needs sourcing. |
-| Nav2 goal button unavailable | Inspect lifecycle states, fresh `/map`, `map → odom`, `/odom`, floor scan and operator heartbeat; keep the tab visible. |
-| Map is empty / navigation fails in unknown space | Explore manually; this project does not prefill a map from warehouse geometry. |
+| Fleet goal / Start both unavailable | Inspect fresh `/fleet/state`, each `/agvN/agv_web/ground_truth`, `/agvN/odom`, `/agvN/scan_obstacles` and the operator heartbeat; keep the tab visible. |
+| Robot stops due to separation or stale telemetry | Check the coordination panel for safety-stop and reservation details. There is no automatic restart; resolve the cause and resubmit the goal. |
+| Historical SLAM map is empty (legacy mode only) | Legacy mapping/navigation launches do not prefill a map from warehouse geometry; fleet mode does not use a map at all. |
 | Robot stops unexpectedly during a test | Check whether another browser/test/manual publisher is taking priority or canceling the goal. |
 | Slow or black 3D viewport | Check WebGL/GPU support and browser console. Test software rendering separately from ROS readiness; avoid reducing safety behavior to hide slow rendering. |
 | Preview page loads, robot is offline | Check the built WebSocket endpoint and `/rosbridge` proxy. Remote `localhost` and HTTPS-to-`ws://` are common mistakes. |
@@ -399,13 +407,13 @@ Stop frontend/preview processes in their own terminals with Ctrl+C. Stop the ROS
 docker compose down
 ```
 
-If a map must be retained, save it **before** stopping/recreating the simulator:
+Fleet mode does not use a saved SLAM map. Only for the **legacy single-robot mapping/navigation modes** (which the current dashboard cannot drive), if a map must be retained, save it **before** stopping/recreating that simulator:
 
 ```bash
 docker compose exec -T simulation bash -c 'source /opt/ros/humble/setup.bash && ros2 run nav2_map_server map_saver_cli -f /workspace/warehouse_map'
 ```
 
-Keep both generated map files. Saving a map does not automatically configure this mapping launch to reload it on startup. Do not claim session state survives a restart unless you have implemented and verified that behavior.
+Keep both generated map files. Saving a map does not automatically configure the legacy mapping launch to reload it on startup. Do not claim session state survives a restart unless you have implemented and verified that behavior.
 
 End the receiving model's setup task with:
 
@@ -417,4 +425,4 @@ End the receiving model's setup task with:
 
 A suitable instruction to give the next model is:
 
-> Read `MODEL_SETUP_GUIDE.md`, inspect this machine and the current project files, then set up the AGV Warehouse Simulation using the recommended Docker route unless the host is a suitable native Humble system. Preserve source/configuration and the command/TF safety contracts. Reinstall generated dependencies for this platform, verify actual ROS data and the website, and report only checks you actually ran. Do not create a public tunnel unless I request one.
+> Read `MODEL_SETUP_GUIDE.md`, inspect this machine and the current project files, then set up the AGV Warehouse Simulation using the recommended Docker route unless the host is a suitable native Humble system. Preserve source/configuration and the fleet reservation, command-ownership and safety contracts. Reinstall generated dependencies for this platform, verify actual ROS data and the website, and report only checks you actually ran. Do not create a public tunnel unless I request one.

@@ -1,8 +1,6 @@
 # Temporary public preview
 
-https://veterinary-madrid-favorite-digital.trycloudflare.com
-
-Verified on 2026-11-16: HTTPS page and production bundle loading, plus live `/odom` over the secure `/rosbridge` WebSocket.
+Replace the placeholder `wss://<your-tunnel-host>/rosbridge` below with the hostname printed by **your own** tunnel run. No live public URL is committed to this repository: a TryCloudflare Quick Tunnel is temporary and its hostname changes whenever the tunnel is recreated.
 
 The static production build is served by the optional Compose `preview` service (Nginx) on port 4174 and published by the `agv-preview-tunnel` Docker container. Nginx proxies `/rosbridge` directly to `simulation:9090`, so remote visitors do not connect to their own localhost. Both preview and tunnel use `restart: unless-stopped`. The tunnel uses HTTP/2 to avoid the QUIC connection timeouts seen on this network.
 
@@ -12,7 +10,7 @@ The current build was created with:
 
 ```bash
 cd frontend
-rtk proxy env VITE_ROSBRIDGE_URL=wss://veterinary-madrid-favorite-digital.trycloudflare.com/rosbridge npm run build
+rtk proxy env VITE_ROSBRIDGE_URL=wss://<your-tunnel-host>/rosbridge npm run build
 cd ..
 rtk proxy docker compose --profile preview up -d --no-build preview
 ```

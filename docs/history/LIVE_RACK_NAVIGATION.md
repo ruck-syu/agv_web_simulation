@@ -1,6 +1,10 @@
+**Historical report — superseded by docs/MULTI_AGV.md and docs/FLEET_ROLLING_VALIDATION.md**
+
+> Evidence paths shown as `test_logs/...` are generated locally by the acceptance runs. `test_logs/` is gitignored, so those files are not tracked in Git.
+
 # Live rack navigation verification
 
-> This report predates the aisle-only rack policy. Its arrival and collision checks did not exclude travel underneath raised shelves. Use [rack aisle policy and validation](RACK_AISLE_POLICY.md) for the corrected geometry and route validation.
+> This report predates the aisle-only rack policy. Its arrival and collision checks did not exclude travel underneath raised shelves. Use [rack aisle policy and validation](../RACK_AISLE_POLICY.md) for the corrected geometry and route validation.
 
 Date: 2026-11-16. Local Docker ROS 2 Humble simulation, domain 72, existing SLAM map and Nav2. No synthetic map, pose reset, mocked ROS transport or auxiliary heartbeat was used for the live journeys. The real dashboard on `http://127.0.0.1:4174` supplied both goals and its normal operator heartbeat. Existing uncommitted feature work was retained.
 
@@ -39,11 +43,11 @@ The final production bundle `index-BFnnESaJ.js` was loaded from the preview serv
 
 The journey ran from 16:40:49 to 16:41:34 UTC (about 45 seconds). An earlier baseline journey also completed both goals before the freshness repair; it is retained as history, not evidence for the repaired build.
 
-Evidence: [final native monitor output](../test_logs/rack_navigation_live/result.json), [dashboard final state](../test_logs/rack_navigation_live/ui-result.json), [transport log counts](../test_logs/rack_navigation_live/transport.json), [physical rack-approach errors](../test_logs/rack_navigation_live/arrival-errors.json), [baseline](../test_logs/rack_navigation_live/baseline.json).
+Evidence: `test_logs/rack_navigation_live/result.json`, `test_logs/rack_navigation_live/ui-result.json`, `test_logs/rack_navigation_live/transport.json`, `test_logs/rack_navigation_live/arrival-errors.json`, `test_logs/rack_navigation_live/baseline.json`.
 
 ## Regression validation
 
-The final complete browser suite passed all four tests, including the live ROS dashboard flow with LiDAR toggles, goal submission/cancellation and disconnect/reconnect. See [browser output](../test_logs/rack_navigation_live/browser-suite.log).
+The final complete browser suite passed all four tests, including the live ROS dashboard flow with LiDAR toggles, goal submission/cancellation and disconnect/reconnect. See `test_logs/rack_navigation_live/browser-suite.log`.
 
 - `cd frontend && rtk npm test`: 26 tests passed, including stale, malformed and intentionally future-dated localization transforms.
 - `cd frontend && rtk npm run build`: TypeScript and production build passed.

@@ -1,6 +1,6 @@
 # Phase 6 — Wheel odometry and localization estimate
 
-**Final integration update:** Live ROS validation now runs in the Docker Humble environment on this Mac. See [FINAL_VALIDATION.md](FINAL_VALIDATION.md) for current passing results; pending/skipped notes below describe the earlier host-only checks.
+**Final integration update:** Live ROS validation now runs in the Docker Humble environment on this Mac. See [FINAL_VALIDATION.md](history/FINAL_VALIDATION.md) for historical passing results; pending/skipped notes below describe the earlier host-only checks.
 
 Implemented in source; live ROS 2 and browser acceptance are pending. Phase 5 live acceptance is also still pending. SLAM, absolute localization and Nav2 remain for Phases 7–8.
 
@@ -77,6 +77,8 @@ python3 -m unittest discover -s ros2_ws/src/agv_web_bridge/test -v
 python3 test_logs/phase3_4_test_runner.py
 ros2 launch agv_web_bridge agv_simulation.launch.py
 ```
+
+> Legacy single-robot procedure: `test_logs/phase3_4_test_runner.py` is no longer tracked. For the current two-AGV fleet, use `scripts/fleet_concurrency_smoke.py` and `agv_fleet.launch.py` instead (see [MULTI_AGV.md](MULTI_AGV.md)).
 
 Phase 6 runtime tests advance fixed physics steps while a ROS harness receives actual messages. They check zero-bias agreement, deliberately biased drift, collision blocking, timeout stopping, covariance, and exact `/odom`/TF/ground-truth stamp agreement. The separate Phase 5 test exercises real timers and scans during motion.
 

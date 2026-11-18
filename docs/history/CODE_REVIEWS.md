@@ -1,3 +1,5 @@
+**Historical report — superseded by docs/MULTI_AGV.md and docs/FLEET_ROLLING_VALIDATION.md**
+
 # Phase reviews
 
 The user requested Luna subagents to review each remaining phase. Four independent `gpt-6-luna` review agents reviewed Phases 6, 7, 8 and 9. They made no source edits; the main agent resolved findings and ran validation.

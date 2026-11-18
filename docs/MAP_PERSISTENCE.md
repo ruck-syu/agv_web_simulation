@@ -1,5 +1,7 @@
 # Map persistence and restart verification
 
+> Evidence paths shown as `test_logs/...` are generated locally by the acceptance runs. `test_logs/` is gitignored, so those files are not tracked in Git.
+
 ## Why navigation stopped
 
 On 2026-11-17, Docker and ROS were running, localization and sensor streams were fresh, and the collision state was clear. However, SLAM had restarted without the explored map. The observed map had 16,629 free cells and 131,536 unknown cells; Nav2 repeatedly exhausted its planner search trying to reach D1 through aisles that were not connected by observed free space. The geometric preview could still draw a warehouse route, which did not establish that the live SLAM planner knew that route.
@@ -34,7 +36,7 @@ Recreated the ROS container from the updated Docker image. Logs confirmed both `
 
 The route used the west cross aisle, reaching world X -25.485 m beyond the rack ends. Unknown-space restrictions, footprint dimensions, collision prevention and operator/sensor watchdogs were retained.
 
-Evidence: [restart logs](../test_logs/map_persistence/restart.log), [live result and trajectory](../test_logs/map_persistence/live-result.json), [checkpoint metadata](../test_logs/map_persistence/checkpoint.json), [mapping traversal](../test_logs/map_persistence/mapping-drive.json), [backend test output](../test_logs/map_persistence/backend-tests.log).
+Evidence: `test_logs/map_persistence/restart.log`, `test_logs/map_persistence/live-result.json`, `test_logs/map_persistence/checkpoint.json`, `test_logs/map_persistence/mapping-drive.json`, `test_logs/map_persistence/backend-tests.log`.
 
 ## Save or update the map
 

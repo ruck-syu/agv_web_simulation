@@ -1,3 +1,5 @@
+**Historical report — superseded by docs/MULTI_AGV.md and docs/FLEET_ROLLING_VALIDATION.md**
+
 # Phase 8 — Nav2 navigation and obstacle avoidance
 
 Validated with real Nav2 goal arrival, cancellation and heartbeat stopping in Docker Humble, plus goal submission/cancel in Chrome. See [FINAL_VALIDATION.md](FINAL_VALIDATION.md).

@@ -1,6 +1,6 @@
 # Phase 7 — SLAM and mapping
 
-Validated with real SLAM Toolbox and map/TF streams in Docker Humble. See [FINAL_VALIDATION.md](FINAL_VALIDATION.md).
+Validated with real SLAM Toolbox and map/TF streams in Docker Humble. See [FINAL_VALIDATION.md](history/FINAL_VALIDATION.md) (historical single-robot report).
 
 `agv_mapping.launch.py` launches the authoritative simulation, rosbridge and SLAM Toolbox online asynchronous mapping with the installed `config/slam.yaml`. Real laser scans and wheel TF are the only SLAM inputs. SLAM publishes `/map` and `map → odom`; the simulator publishes `odom → base_link → laser_frame`. All nodes use wall clock (`use_sim_time=false`); this simulator does not publish `/clock`.
 

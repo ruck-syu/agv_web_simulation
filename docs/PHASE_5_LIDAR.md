@@ -1,6 +1,6 @@
 # Phase 5 — LiDAR implementation and validation gate
 
-**Final integration update:** Live ROS validation now runs in the Docker Humble environment on this Mac. See [FINAL_VALIDATION.md](FINAL_VALIDATION.md) for current passing results; pending/skipped notes below describe the earlier host-only checks.
+**Final integration update:** Live ROS validation now runs in the Docker Humble environment on this Mac. See [FINAL_VALIDATION.md](history/FINAL_VALIDATION.md) for historical passing results; pending/skipped notes below describe the earlier host-only checks.
 
 **Phase 6 update:** `/odom` now contains a wheel estimate. Physical visualization uses `/agv_web/ground_truth` in `world`. See [Phase 6](PHASE_6_ODOMETRY.md) for the current topic/frame contract; references below to ground-truth `/odom` describe the original Phase 5 implementation.
 
@@ -46,6 +46,8 @@ python3 -m unittest discover -s ros2_ws/src/agv_web_bridge/test -v
 python3 test_logs/phase3_4_test_runner.py
 ros2 launch agv_web_bridge agv_simulation.launch.py
 ```
+
+> Legacy single-robot procedure: `test_logs/phase3_4_test_runner.py` is no longer tracked. For the current two-AGV fleet, use `scripts/fleet_concurrency_smoke.py` and `agv_fleet.launch.py` instead (see [MULTI_AGV.md](MULTI_AGV.md)).
 
 In a second sourced shell:
 

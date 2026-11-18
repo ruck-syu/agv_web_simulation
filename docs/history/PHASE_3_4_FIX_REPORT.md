@@ -1,3 +1,5 @@
+**Historical report — superseded by docs/MULTI_AGV.md and docs/FLEET_ROLLING_VALIDATION.md**
+
 # Phase 3/4 Fix Report — AGV Web Simulation
 
 **Status:** PASS (Phase 3/4 fixes complete)
@@ -186,5 +188,5 @@ Tests/docs:
 - `test_logs/phase3_4_test_runner.py`
 - `test_logs/phase3_4_test_log.md`
 - `test_logs/phase3_4_results.json`
-- `docs/PHASE_3_4_FIX_REPORT.md`
+- `docs/history/PHASE_3_4_FIX_REPORT.md` (moved to `docs/history/`)
 - `docs/screenshots/phase3_4/*.png`
