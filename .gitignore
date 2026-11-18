@@ -1,0 +1,22 @@
+# Generated test output and validation evidence
+test_logs/
+
+# Generated frontend artifacts
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+
+# Generated ROS 2 workspace artifacts
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# OS metadata
+.DS_Store
+# Throwaway local screenshots
+docs/screenshots/**/tmp_view_*.png
