@@ -21,10 +21,9 @@ setup(
     maintainer_email='developer@example.com',
     description='ROS 2 communication and authoritative AGV simulation nodes for the web dashboard.',
     license='Proprietary',
-    tests_require=['pytest'],
+    tests_require=[],
     entry_points={
         'console_scripts': [
-            'comm_test_node = agv_web_bridge.comm_test_node:main',
             'navigation_node = agv_web_bridge.navigation_node:main',
             'fleet_simulation = agv_web_bridge.fleet_simulation:main',
             'fleet_node = agv_web_bridge.fleet_node:main',
